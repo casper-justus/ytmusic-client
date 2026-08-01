@@ -114,9 +114,7 @@ jobs:
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
 
       - name: Install Dependencies
-        run: |
-          flutter pub get
-          flutter pub run build_runner build --delete-conflicting-outputs
+        run: flutter pub get
 
       - name: Setup Debug Keystore
         if: needs.prepare.outputs.channel == 'debug' || needs.prepare.outputs.channel == 'both'
@@ -264,9 +262,7 @@ jobs:
           channel: ${{ env.FLUTTER_CHANNEL }}
           cache: true
 
-      - name: Install Dependencies
-        run: |
-          flutter pub get
+        run: flutter pub get
           flutter pub run build_runner build --delete-conflicting-outputs
 
       - name: Update Version
