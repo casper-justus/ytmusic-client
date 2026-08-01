@@ -1,0 +1,94 @@
+name: ytmusic_client
+description: Open-source YouTube Music client with full feature parity
+version: 1.0.0+1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  
+  # Networking
+  dio: ^5.4.3
+  http: ^1.2.1
+  connectivity_plus: ^6.0.3
+  
+  # Local Database
+  drift: ^2.18.0
+  sqlite3_flutter_libs: ^0.5.20
+  path_provider: ^2.1.2
+  path: ^1.9.0
+  
+  # Audio Playback
+  just_audio: ^0.9.36
+  audio_session: ^0.1.19
+  just_audio_background: ^0.0.1-beta.11
+  media_kit: ^1.1.10
+  media_kit_libs_android_video: ^1.0.5
+  media_kit_libs_android_audio: ^1.0.3
+  
+  # Background/Foreground
+  flutter_background_service: ^5.0.5
+  flutter_background_service_android: ^6.2.4
+  workmanager: ^0.5.2
+  
+  # System Integration
+  permission_handler: ^11.3.1
+  device_info_plus: ^10.1.0
+  package_info_plus: ^8.0.0
+  url_launcher: ^6.2.5
+  share_plus: ^10.0.0
+  
+  # Security & Crypto
+  encrypt: ^5.0.3
+  pointycastle: ^3.8.0
+  flutter_secure_storage: ^9.2.2
+  
+  # UI & Theming
+  material_color_utilities: ^0.11.1
+  palette_generator: ^0.3.3
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+  flutter_staggered_grid_view: ^0.7.0
+  sliver_tools: ^0.2.12
+  go_router: ^14.1.4
+  
+  # Utilities
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+  equatable: ^2.0.5
+  collection: ^1.18.0
+  intl: ^0.19.0
+  logging: ^1.2.0
+  meta: ^1.12.0
+  
+  # Equalizer
+  audio_effects: ^0.2.0
+  
+  # Image Processing
+  image: ^4.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.11
+  riverpod_generator: ^2.4.0
+  freezed: ^2.5.2
+  json_serializable: ^6.8.0
+  drift_dev: ^2.18.0
+  mockito: ^5.4.4
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/fonts/
+    - assets/icons/

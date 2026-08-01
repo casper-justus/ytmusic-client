@@ -1,0 +1,16 @@
+include ':app'
+
+def flutterProjectRoot = rootProject.projectDir.parentFile.toPath()
+def flutterProjects = new File(flutterProjectRoot.toFile(), 'flutter_ephemeral/.flutter-plugins-dependencies')
+if (flutterProjects.exists()) {
+    def plugins = new Properties()
+    plugins.load(new FileInputStream(flutterProjects))
+    plugins.each { k, v ->
+        def path = v.toString()
+        if (path.startsWith('file://')) {
+            path = path.substring(7)
+        }
+        include k
+        project(":${k}").projectDir = new File(path)
+    }
+}
