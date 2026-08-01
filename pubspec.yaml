@@ -68,9 +68,6 @@ dependencies:
   logging: ^1.2.0
   meta: ^1.12.0
   
-  # Equalizer
-  audio_effects: ^0.2.0
-  
   # Image Processing
   image: ^4.2.0
 
