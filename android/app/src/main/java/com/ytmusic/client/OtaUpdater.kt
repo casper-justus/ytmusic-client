@@ -24,8 +24,8 @@ class OtaUpdater(private val context: Context) {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    private val repoOwner = "YOUR_GITHUB_USERNAME"
-    private val repoName = "YOUR_REPO_NAME"
+    private val repoOwner = "casper-justus"
+    private val repoName = "ytmusic-client"
     private val gson = Gson()
 
     interface Callback {
