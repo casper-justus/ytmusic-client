@@ -126,7 +126,7 @@ jobs:
         with:
           fileName: 'debug.keystore'
           encodedString: ${{ secrets.ANDROID_DEBUG_KEYSTORE_BASE64 }}
-          filePath: 'android/app/'
+          fileDir: 'android/app/'
 
       - name: Setup Release Keystore
         if: needs.prepare.outputs.channel == 'release' || needs.prepare.outputs.channel == 'both'
@@ -134,18 +134,18 @@ jobs:
         with:
           fileName: 'release.keystore'
           encodedString: ${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}
-          filePath: 'android/app/'
+          fileDir: 'android/app/'
 
       - name: Configure Signing Properties
         run: |
-          cat > android/keystore.properties << EOF
+          cat > android/keystore.properties << 'EOF'
           debug.storeFile=../app/debug.keystore
           debug.storePassword=${{ secrets.ANDROID_DEBUG_KEYSTORE_PASSWORD }}
           debug.keyAlias=${{ secrets.ANDROID_DEBUG_KEY_ALIAS }}
           debug.keyPassword=${{ secrets.ANDROID_DEBUG_KEY_PASSWORD }}
           EOF
           if [ -n "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" ]; then
-            cat >> android/keystore.properties << EOF
+            cat >> android/keystore.properties << 'EOF'
             release.storeFile=../app/release.keystore
             release.storePassword=${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
             release.keyAlias=${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
