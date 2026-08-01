@@ -75,7 +75,6 @@ targets:
         enabled: true
         options:
           drift_dev:
-            # Drift options
             generate_getters: true
             generate_setters: true
             generate_create_table: true

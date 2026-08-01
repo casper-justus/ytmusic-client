@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import '../../shared/models/track.dart';
+import '../constants.dart';
 
 final _logger = Logger('StreamExtractor');
 
@@ -16,8 +17,8 @@ abstract class StreamExtractor {
 enum ClientContext { androidMusic, ios, webRemix, tvEmbedded }
 
 class NewPipeExtractorImpl implements StreamExtractor {
-  static const String _playerUrl = 'https://www.youtube.com/youtubei/v1/player';
-  static const String _apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
+  static const String _playerUrl = '$kYouTubeBaseUrl/youtubei/v1/player';
+  static const String _apiKey = kYouTubeApiKey;
   
   final Dio _dio;
   final PoTokenProvider _poTokenProvider;

@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../constants.dart';
 
 final _logger = Logger('PoTokenProvider');
 
@@ -16,8 +17,8 @@ abstract class PoTokenProvider {
 }
 
 class PoTokenProviderImpl implements PoTokenProvider {
-  static const String _challengeUrl = 'https://www.youtube.com/youtubei/v1/validate_playback';
-  static const String _apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
+  static const String _challengeUrl = '$kYouTubeBaseUrl/youtubei/v1/validate_playback';
+  static const String _apiKey = kYouTubeApiKey;
   
   final Dio _dio;
   final SharedPreferences _prefs;

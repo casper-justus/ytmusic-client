@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import '../../shared/models/track.dart';
+import '../constants.dart';
 
 final _logger = Logger('InnerTubeClient');
 
@@ -48,9 +49,9 @@ enum SearchFilter { songs, videos, albums, artists, playlists }
 
 enum ClientContext { webRemix, androidMusic, ios, tvEmbedded }
 
-class InnerTubeClientImpl implements InnerTubeClientImpl implements InnerTubeClient {
-  static const String _baseUrl = 'https://music.youtube.com/youtubei/v1';
-  static const String _apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
+class InnerTubeClientImpl implements InnerTubeClient {
+  static const String _baseUrl = kInnerTubeBaseUrl;
+  static const String _apiKey = kYouTubeApiKey;
   
   final Dio _dio;
   final PoTokenProvider _poTokenProvider;
