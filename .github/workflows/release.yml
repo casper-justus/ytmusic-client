@@ -129,7 +129,7 @@ jobs:
           filePath: 'android/app/'
 
       - name: Setup Release Keystore
-        if: (needs.prepare.outputs.channel == 'release' || needs.prepare.outputs.channel == 'both') && secrets.ANDROID_RELEASE_KEYSTORE_BASE64 != ''
+        if: needs.prepare.outputs.channel == 'release' || needs.prepare.outputs.channel == 'both'
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: 'release.keystore'
@@ -172,13 +172,17 @@ jobs:
             --build-number=${{ needs.prepare.outputs.version_code }}
 
       - name: Build Release APKs
-        if: (needs.prepare.outputs.channel == 'release' || needs.prepare.outputs.channel == 'both') && secrets.ANDROID_RELEASE_KEYSTORE_BASE64 != ''
+        if: needs.prepare.outputs.channel == 'release' || needs.prepare.outputs.channel == 'both'
         run: |
-          flutter build apk --release \
-            --target-platform ${{ matrix.flutter_target }} \
-            --split-per-abi \
-            --build-name=${{ needs.prepare.outputs.version_name }} \
-            --build-number=${{ needs.prepare.outputs.version_code }}
+          if [ -n "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" ]; then
+            flutter build apk --release \
+              --target-platform ${{ matrix.flutter_target }} \
+              --split-per-abi \
+              --build-name=${{ needs.prepare.outputs.version_name }} \
+              --build-number=${{ needs.prepare.outputs.version_code }}
+          else
+            echo "Skipping release build - no release keystore configured"
+          fi
 
       - name: Build Debug App Bundle (for Play Store)
         if: needs.prepare.outputs.channel == 'debug' || needs.prepare.outputs.channel == 'both'
@@ -188,11 +192,15 @@ jobs:
             --build-number=${{ needs.prepare.outputs.version_code }}
 
       - name: Build Release App Bundle (for Play Store)
-        if: (needs.prepare.outputs.channel == 'release' || needs.prepare.outputs.channel == 'both') && secrets.ANDROID_RELEASE_KEYSTORE_BASE64 != ''
+        if: needs.prepare.outputs.channel == 'release' || needs.prepare.outputs.channel == 'both'
         run: |
-          flutter build appbundle --release \
-            --build-name=${{ needs.prepare.outputs.version_name }} \
-            --build-number=${{ needs.prepare.outputs.version_code }}
+          if [ -n "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" ]; then
+            flutter build appbundle --release \
+              --build-name=${{ needs.prepare.outputs.version_name }} \
+              --build-number=${{ needs.prepare.outputs.version_code }}
+          else
+            echo "Skipping release bundle - no release keystore configured"
+          fi
 
       - name: Rename & Organize Artifacts
         run: |
