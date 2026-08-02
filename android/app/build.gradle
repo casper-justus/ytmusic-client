@@ -1,7 +1,12 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.google.gms.google-services'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
 
 android {
     namespace "com.ytmusic.client"
@@ -19,17 +24,24 @@ android {
 
     signingConfigs {
         debug {
-            storeFile file("../debug.keystore")
-            storePassword "android"
-            keyAlias "debug"
-            keyPassword "android"
+            if (keystoreProperties.containsKey('debug.storeFile')) {
+                storeFile file(keystoreProperties['debug.storeFile'])
+                storePassword keystoreProperties['debug.storePassword']
+                keyAlias keystoreProperties['debug.keyAlias']
+                keyPassword keystoreProperties['debug.keyPassword']
+            } else {
+                storeFile file('../app/debug.keystore')
+                storePassword "android"
+                keyAlias "debug"
+                keyPassword "android"
+            }
         }
         release {
-            if (project.hasProperty('keystore')) {
-                storeFile file(keystore)
-                storePassword keystorePassword
-                keyAlias keyAlias
-                keyPassword keyPassword
+            if (keystoreProperties.containsKey('release.storeFile')) {
+                storeFile file(keystoreProperties['release.storeFile'])
+                storePassword keystoreProperties['release.storePassword']
+                keyAlias keystoreProperties['release.keyAlias']
+                keyPassword keystoreProperties['release.keyPassword']
             }
         }
     }
