@@ -128,7 +128,7 @@ jobs:
           cache: true
           cache-key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
 
-- name: Install Dependencies
+      - name: Install Dependencies
         run: flutter pub get
         timeout-minutes: 10
  
