@@ -102,11 +102,11 @@ jobs:
         arch: [arm64-v8a, armeabi-v7a, x86_64]
         include:
           - arch: arm64-v8a
-            flutter_target: arm64
+            flutter_target: android-arm64
           - arch: armeabi-v7a
-            flutter_target: arm
+            flutter_target: android-arm
           - arch: x86_64
-            flutter_target: x86_64
+            flutter_target: android-x64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
