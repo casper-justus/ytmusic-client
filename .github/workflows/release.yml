@@ -157,12 +157,12 @@ jobs:
           debug.keyPassword=${{ secrets.ANDROID_DEBUG_KEY_PASSWORD }}
           EOF
           if [ -n "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" ]; then
-            cat >> android/keystore.properties << 'EOF'
+            cat >> android/keystore.properties << 'EOF2'
             release.storeFile=../app/release.keystore
             release.storePassword=${{ secrets.ANDROID_RELEASE_KEYSTORE_PASSWORD }}
             release.keyAlias=${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
             release.keyPassword=${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
-            EOF
+            EOF2
           fi
           cat android/keystore.properties
 
