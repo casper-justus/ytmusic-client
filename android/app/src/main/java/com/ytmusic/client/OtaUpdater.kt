@@ -14,6 +14,8 @@ import com.google.gson.JsonParser
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import okio.buffer
+import okio.sink
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -159,7 +161,7 @@ class OtaUpdater(private val context: Context) {
 
                 client.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) {
-                        callback.onError("Download failed: ${response.code()}")
+                        callback.onError("Download failed: ${response.code}")
                         return@use
                     }
 
@@ -170,7 +172,7 @@ class OtaUpdater(private val context: Context) {
                     val apkFile = File(context.cacheDir, "update-${System.currentTimeMillis()}.apk")
                     apkFile.parentFile?.mkdirs()
 
-                    val sink = okio.Okio.buffer(okio.Okio.sink(apkFile))
+                    val sink = apkFile.sink().buffer()
                     val source = body.source()
 
                     while (true) {
