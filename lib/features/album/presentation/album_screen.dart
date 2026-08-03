@@ -2,6 +2,7 @@ library ytmusic_client.features.album.presentation.album_screen;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import '../../../core/presentation/providers.dart';
 import '../../../shared/models/track.dart';
@@ -36,7 +37,9 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                       album.artworkUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         child: const Center(child: Icon(Icons.album, size: 80)),
                       ),
                     ),
@@ -59,20 +62,29 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                           children: [
                             Text(
                               album.title,
-                              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineLarge
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               album.artist,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white70),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(color: Colors.white70),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               '${album.year} • ${album.trackCount} songs • ${_formatDuration(album.tracks.fold(0, (sum, t) => sum + t.duration))}',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(color: Colors.white70),
                             ),
                           ],
                         ),
@@ -107,7 +119,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
                   }
                   final trackIndex = index - 1;
                   if (trackIndex < album.tracks.length) {
-                    return _buildTrackTile(album.tracks[trackIndex], trackIndex);
+                    return _buildTrackTile(
+                        album.tracks[trackIndex], trackIndex, album.tracks);
                   }
                   return null;
                 },
@@ -121,7 +134,8 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+              Icon(Icons.error_outline,
+                  size: 64, color: Theme.of(context).colorScheme.error),
               const SizedBox(height: 16),
               Text('Failed to load album'),
               const SizedBox(height: 8),
@@ -171,13 +185,13 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     );
   }
 
-  Widget _buildTrackTile(Track track, int index) {
+  Widget _buildTrackTile(Track track, int index, List<Track> tracks) {
     return ListTile(
       leading: Text(
         '${index + 1}',
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
       ),
       title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: track.artist.isNotEmpty ? Text(track.artist) : null,
@@ -187,13 +201,14 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           Text(
             _formatDuration(track.duration),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
           PopupMenuButton(
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'play', child: Text('Play')),
-              const PopupMenuItem(value: 'add_queue', child: Text('Add to queue')),
+              const PopupMenuItem(
+                  value: 'add_queue', child: Text('Add to queue')),
               const PopupMenuItem(value: 'download', child: Text('Download')),
               const PopupMenuItem(value: 'share', child: Text('Share')),
             ],
@@ -201,7 +216,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
           ),
         ],
       ),
-      onTap: () => _playTrack(track, album.tracks, index),
+      onTap: () => _playTrack(track, tracks, index),
     );
   }
 
@@ -260,7 +275,7 @@ class _AlbumScreenState extends ConsumerState<AlbumScreen> {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final secs = duration.inSeconds.remainder(60);
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     }

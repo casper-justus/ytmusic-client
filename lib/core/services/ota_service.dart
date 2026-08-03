@@ -10,7 +10,7 @@ final _logger = Logger('OtaService');
 
 class OtaService {
   static const MethodChannel _channel = MethodChannel('com.ytmusic.client/ota');
-  
+
   static bool _isChecking = false;
   static StreamController<OtaStatus>? _statusController;
 
@@ -22,12 +22,13 @@ class OtaService {
   static Future<OtaReleaseInfo?> checkForUpdates() async {
     if (_isChecking) return null;
     _isChecking = true;
-    
+
     try {
-      _emitStatus(OtaStatus.checking());
-      
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('checkForUpdates');
-      
+      _emitStatus(OtaStatusFactory.checking());
+
+      final result =
+          await _channel.invokeMethod<Map<dynamic, dynamic>>('checkForUpdates');
+
       if (result != null) {
         final info = OtaReleaseInfo(
           versionName: result['versionName'] as String,
@@ -35,45 +36,46 @@ class OtaService {
           isPreRelease: result['isPreRelease'] as bool,
           changelog: result['changelog'] as String? ?? '',
         );
-        
+
         final currentVersion = await _getCurrentVersion();
         if (_isNewerVersion(currentVersion, info.versionName)) {
-          _emitStatus(OtaStatus.updateAvailable(info));
+          _emitStatus(OtaStatusFactory.updateAvailable(info));
           return info;
         }
       }
-      
-      _emitStatus(OtaStatus.upToDate());
+
+      _emitStatus(OtaStatusFactory.upToDate());
       return null;
     } on PlatformException catch (e) {
       _logger.warning('OTA check failed: ${e.message}');
-      _emitStatus(OtaStatus.error(e.message ?? 'Unknown error'));
+      _emitStatus(OtaStatusFactory.error(e.message ?? 'Unknown error'));
       return null;
     } finally {
       _isChecking = false;
     }
   }
 
-  static Future<bool> downloadAndInstall(OtaReleaseInfo info, {Function(double)? onProgress}) async {
+  static Future<bool> downloadAndInstall(OtaReleaseInfo info,
+      {Function(double)? onProgress}) async {
     try {
-      _emitStatus(OtaStatus.downloading(0.0));
-      
+      _emitStatus(OtaStatusFactory.downloading(0.0));
+
       // For now, we'll use the platform channel which doesn't support progress callbacks
       // In a full implementation, you'd use an EventChannel for progress
       final success = await _channel.invokeMethod<bool>('downloadAndInstall', {
         'url': info.downloadUrl,
       });
-      
+
       if (success == true) {
-        _emitStatus(OtaStatus.installing());
+        _emitStatus(OtaStatusFactory.installing());
         return true;
       }
-      
-      _emitStatus(OtaStatus.error('Download failed'));
+
+      _emitStatus(OtaStatusFactory.error('Download failed'));
       return false;
     } on PlatformException catch (e) {
       _logger.warning('OTA install failed: ${e.message}');
-      _emitStatus(OtaStatus.error(e.message ?? 'Unknown error'));
+      _emitStatus(OtaStatusFactory.error(e.message ?? 'Unknown error'));
       return false;
     }
   }
@@ -98,11 +100,12 @@ class OtaService {
   static bool _isNewerVersion(String current, String remote) {
     final cleanCurrent = current.split('-')[0];
     final cleanRemote = remote.split('-')[0];
-    
+
     final parts1 = cleanRemote.split('.').map(int.parse).toList();
     final parts2 = cleanCurrent.split('.').map(int.parse).toList();
-    final maxSize = parts1.length > parts2.length ? parts1.length : parts2.length;
-    
+    final maxSize =
+        parts1.length > parts2.length ? parts1.length : parts2.length;
+
     for (int i = 0; i < maxSize; i++) {
       final p1 = i < parts1.length ? parts1[i] : 0;
       final p2 = i < parts2.length ? parts2[i] : 0;
@@ -166,9 +169,10 @@ class OtaError extends OtaStatus {
   const OtaError(this.message);
 }
 
-extension OtaStatusFactory on OtaStatus {
+abstract final class OtaStatusFactory {
   static OtaStatus checking() => const OtaChecking();
-  static OtaStatus updateAvailable(OtaReleaseInfo info) => OtaUpdateAvailable(info);
+  static OtaStatus updateAvailable(OtaReleaseInfo info) =>
+      OtaUpdateAvailable(info);
   static OtaStatus downloading(double progress) => OtaDownloading(progress);
   static OtaStatus installing() => const OtaInstalling();
   static OtaStatus upToDate() => const OtaUpToDate();

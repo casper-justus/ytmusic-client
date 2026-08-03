@@ -1,5 +1,6 @@
 library ytmusic_client.core.presentation.router;
 
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
@@ -67,7 +68,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const PlayerScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
                 return SlideTransition(
                   position: Tween<Offset>(
                     begin: const Offset(0, 1),
@@ -96,7 +98,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 class ScaffoldWithMiniPlayer extends StatelessWidget {
   final Widget child;
-  
+
   const ScaffoldWithMiniPlayer({super.key, required this.child});
 
   @override

@@ -29,9 +29,11 @@ class AppTheme {
 
   static AppTheme defaultTheme() {
     final seed = const Color(0xFFDB4437); // YouTube red
-    final lightScheme = ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light);
-    final darkScheme = ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark);
-    
+    final lightScheme =
+        ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light);
+    final darkScheme =
+        ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark);
+
     return AppTheme(
       lightTheme: _buildTheme(lightScheme),
       darkTheme: _buildTheme(darkScheme),
@@ -57,7 +59,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: scheme.surfaceContainerHighest,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -93,7 +95,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: scheme.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: scheme.surface,
@@ -107,7 +110,8 @@ class AppTheme {
         indicatorColor: scheme.primaryContainer,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return TextStyle(color: scheme.primary, fontWeight: FontWeight.w600);
+            return TextStyle(
+                color: scheme.primary, fontWeight: FontWeight.w600);
           }
           return TextStyle(color: scheme.onSurfaceVariant);
         }),
@@ -116,7 +120,7 @@ class AppTheme {
         activeTrackColor: scheme.primary,
         inactiveTrackColor: scheme.primaryContainer,
         thumbColor: scheme.primary,
-        overlayColor: scheme.primary.withValues(alpha: 0.12),
+        overlayColor: scheme.primary.withOpacity(0.12),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: scheme.primary,
@@ -138,10 +142,12 @@ class AppTheme {
 
   AppTheme copyWith({Color? seedColor}) {
     if (seedColor == null || seedColor == this.seedColor) return this;
-    
-    final lightScheme = ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.light);
-    final darkScheme = ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark);
-    
+
+    final lightScheme = ColorScheme.fromSeed(
+        seedColor: seedColor, brightness: Brightness.light);
+    final darkScheme =
+        ColorScheme.fromSeed(seedColor: seedColor, brightness: Brightness.dark);
+
     return AppTheme(
       lightTheme: _buildTheme(lightScheme),
       darkTheme: _buildTheme(darkScheme),
@@ -164,11 +170,11 @@ class ThemeNotifier extends StateNotifier<AppTheme> {
       final paletteGenerator = await PaletteGenerator.fromImageProvider(
         NetworkImage(imageUrl),
       );
-      
+
       final vibrant = paletteGenerator.vibrantColor?.color ??
-                      paletteGenerator.dominantColor?.color ??
-                      paletteGenerator.mutedColor?.color;
-      
+          paletteGenerator.dominantColor?.color ??
+          paletteGenerator.mutedColor?.color;
+
       if (vibrant != null) {
         await updateSeedColor(vibrant);
       }

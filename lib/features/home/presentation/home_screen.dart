@@ -2,6 +2,7 @@ library ytmusic_client.features.home.presentation.home_screen;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import '../../../core/presentation/providers.dart';
 import '../../../shared/models/track.dart';
@@ -34,7 +35,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
         !_isLoadingMore &&
         _continuationToken != null) {
       _loadMore();
@@ -81,7 +83,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   if (value == 'settings') context.go('/settings');
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'settings', child: Text('Settings')),
+                  const PopupMenuItem(
+                      value: 'settings', child: Text('Settings')),
                 ],
               ),
             ],
@@ -105,11 +108,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+                    Icon(Icons.error_outline,
+                        size: 64, color: Theme.of(context).colorScheme.error),
                     const SizedBox(height: 16),
                     Text('Failed to load home feed'),
                     const SizedBox(height: 8),
-                    Text(error.toString(), style: Theme.of(context).textTheme.bodySmall),
+                    Text(error.toString(),
+                        style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => ref.invalidate(homeFeedProvider(null)),
@@ -139,8 +144,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Text(
                 section.title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
               if (section.navigationEndpoint != null)
                 TextButton(
@@ -182,15 +187,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             'Item Title',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
           Text(
             'Artist Name',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
         ],
       ),

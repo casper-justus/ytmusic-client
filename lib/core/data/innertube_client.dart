@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import '../../shared/models/track.dart';
 import '../constants.dart';
+import 'po_token_provider.dart';
 
 final _logger = Logger('InnerTubeClient');
 
@@ -52,7 +53,7 @@ enum ClientContext { webRemix, androidMusic, ios, tvEmbedded }
 class InnerTubeClientImpl implements InnerTubeClient {
   static const String _baseUrl = kInnerTubeBaseUrl;
   static const String _apiKey = kYouTubeApiKey;
-  
+
   final Dio _dio;
   final PoTokenProvider _poTokenProvider;
   final String? _sessionCookie;
@@ -80,7 +81,8 @@ class InnerTubeClientImpl implements InnerTubeClient {
         'X-YouTube-Client-Name': '1',
         'X-YouTube-Client-Version': '2.20240101.00.00',
       },
-    ))..interceptors.add(LogInterceptor(
+    ))
+      ..interceptors.add(LogInterceptor(
         requestBody: true,
         responseBody: true,
         logPrint: (obj) => _logger.fine(obj.toString()),
@@ -106,7 +108,7 @@ class InnerTubeClientImpl implements InnerTubeClient {
     }
   }
 
-  static Map<String, dynamic> _buildClientContexts() {
+  static Map<ClientContext, Map<String, dynamic>> _buildClientContexts() {
     return {
       ClientContext.webRemix: {
         'clientName': 'WEB_REMIX',
@@ -240,7 +242,7 @@ class InnerTubeClientImpl implements InnerTubeClient {
     String? continuation,
   }) async {
     final filterParams = _getSearchFilterParams(filter);
-    
+
     final body = {
       ..._getContext(ClientContext.webRemix),
       'query': query,
@@ -301,7 +303,7 @@ class InnerTubeClientImpl implements InnerTubeClient {
   }) async {
     final token = poToken ?? await _poTokenProvider.getPoToken(videoId);
     final nonce = cpn ?? _generateCpn();
-    
+
     final body = {
       ..._getContext(context),
       'videoId': videoId,
@@ -312,9 +314,10 @@ class InnerTubeClientImpl implements InnerTubeClient {
         },
       },
       'cpn': nonce,
-      if (token != null) 'serviceIntegrityDimensions': {
-        'poToken': token,
-      },
+      if (token != null)
+        'serviceIntegrityDimensions': {
+          'poToken': token,
+        },
       'contentCheckOk': true,
       'racyCheckOk': true,
     };
@@ -349,7 +352,7 @@ class InnerTubeClientImpl implements InnerTubeClient {
   @override
   Future<Map<String, dynamic>> getAccount() async {
     final body = _getContext(ClientContext.webRemix);
-    
+
     final response = await _retryRequest(
       () => _dio.post(
         '/account',
@@ -383,22 +386,24 @@ class InnerTubeClientImpl implements InnerTubeClient {
     return base64Url.encode(bytes).replaceAll('=', '');
   }
 
-  Future<Response<dynamic>> _retryRequest(Future<Response<dynamic>> Function() request) async {
+  Future<Response<dynamic>> _retryRequest(
+      Future<Response<dynamic>> Function() request) async {
     int attempts = 0;
     const maxAttempts = 3;
-    
+
     while (attempts < maxAttempts) {
       try {
         return await request();
       } on DioException catch (e) {
         attempts++;
         if (attempts >= maxAttempts) rethrow;
-        
+
         if (e.response?.statusCode == 403) {
           await _poTokenProvider.invalidateCache();
         }
-        
-        final delay = Duration(milliseconds: 1000 * pow(2, attempts - 1).toInt());
+
+        final delay =
+            Duration(milliseconds: 1000 * pow(2, attempts - 1).toInt());
         await Future.delayed(delay);
       }
     }

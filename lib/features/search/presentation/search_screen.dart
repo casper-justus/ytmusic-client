@@ -2,10 +2,13 @@ library ytmusic_client.features.search.presentation.search_screen;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
+import '../../../core/data/innertube_client.dart';
 import '../../../core/presentation/providers.dart';
 import '../../../shared/models/track.dart';
 import '../../../shared/widgets/section_list.dart';
+import '../../library/presentation/library_screen.dart';
 
 final _logger = Logger('SearchScreen');
 
@@ -38,7 +41,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   void _onSearchSubmitted(String query) {
     if (query.trim().isNotEmpty) {
-      ref.read(searchHistoryProvider.notifier).addSearch(query, _selectedFilter);
+      ref
+          .read(searchHistoryProvider.notifier)
+          .addSearch(query, _selectedFilter);
       ref.invalidate(searchProvider(SearchParams(
         query: query,
         filter: _selectedFilter,
@@ -95,8 +100,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             SliverFillRemaining(
               child: _buildSearchSuggestions(),
             )
-          else
-            searchAsync?.when(
+          else if (searchAsync != null)
+            searchAsync.when(
               data: (result) => _buildSearchResults(result),
               loading: () => const SliverFillRemaining(
                 child: Center(child: CircularProgressIndicator()),
@@ -106,18 +111,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+                      Icon(Icons.error_outline,
+                          size: 64, color: Theme.of(context).colorScheme.error),
                       const SizedBox(height: 16),
                       Text('Search failed'),
                       const SizedBox(height: 8),
-                      Text(error.toString(), style: Theme.of(context).textTheme.bodySmall),
+                      Text(error.toString(),
+                          style: Theme.of(context).textTheme.bodySmall),
                     ],
                   ),
                 ),
               ),
             )
           else
-            const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+            const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator())),
         ],
       ),
     );
@@ -149,7 +157,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   _onSearchSubmitted(_searchController.text);
                 }
               },
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
               selectedColor: Theme.of(context).colorScheme.primaryContainer,
               labelStyle: TextStyle(
                 color: isSelected
@@ -165,7 +174,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Widget _buildSearchSuggestions() {
-    final historyAsync = ref.watch(searchHistoryProvider(20));
+    final historyAsync = ref.watch(searchHistoryProvider);
 
     return historyAsync.when(
       data: (history) {
@@ -174,9 +183,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.search, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                Icon(Icons.search,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
                 const SizedBox(height: 16),
-                Text('Search for music', style: Theme.of(context).textTheme.headlineSmall),
+                Text('Search for music',
+                    style: Theme.of(context).textTheme.headlineSmall),
                 const SizedBox(height: 8),
                 Text('Songs, artists, albums, playlists and more',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -195,9 +207,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Recent searches', style: Theme.of(context).textTheme.titleLarge),
+                  Text('Recent searches',
+                      style: Theme.of(context).textTheme.titleLarge),
                   TextButton(
-                    onPressed: () => ref.read(searchHistoryProvider.notifier).clear(),
+                    onPressed: () =>
+                        ref.read(searchHistoryProvider.notifier).clear(),
                     child: const Text('Clear all'),
                   ),
                 ],
@@ -211,16 +225,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               itemBuilder: (context, index) {
                 final item = history[index];
                 return ListTile(
-                  leading: Icon(Icons.history, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  leading: Icon(Icons.history,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   title: Text(item.query),
-                  subtitle: Text(_getFilterLabel(item.filter)),
+                  subtitle: Text(_getFilterLabel(_filterFromName(item.filter))),
                   trailing: IconButton(
                     icon: Icon(Icons.close, size: 18),
-                    onPressed: () => ref.read(searchHistoryProvider.notifier).remove(item.id!),
+                    onPressed: () => ref
+                        .read(searchHistoryProvider.notifier)
+                        .remove(item.id!),
                   ),
                   onTap: () {
                     _searchController.text = item.query;
-                    setState(() => _selectedFilter = item.filter);
+                    setState(
+                        () => _selectedFilter = _filterFromName(item.filter));
                     _onSearchSubmitted(item.query);
                   },
                 );
@@ -237,11 +255,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget _buildSearchResults(SearchResult result) {
     return SliverList(
       delegate: SliverChildListDelegate([
-        if (result.songs.isNotEmpty) _buildResultSection('Songs', result.songs, (t) => _buildTrackTile(t)),
-        if (result.videos.isNotEmpty) _buildResultSection('Videos', result.videos, (v) => _buildVideoTile(v)),
-        if (result.albums.isNotEmpty) _buildResultSection('Albums', result.albums, (a) => _buildAlbumTile(a)),
-        if (result.artists.isNotEmpty) _buildResultSection('Artists', result.artists, (a) => _buildArtistTile(a)),
-        if (result.playlists.isNotEmpty) _buildResultSection('Playlists', result.playlists, (p) => _buildPlaylistTile(p)),
+        if (result.songs.isNotEmpty)
+          _buildResultSection('Songs', result.songs, (t) => _buildTrackTile(t)),
+        if (result.videos.isNotEmpty)
+          _buildResultSection(
+              'Videos', result.videos, (v) => _buildVideoTile(v)),
+        if (result.albums.isNotEmpty)
+          _buildResultSection(
+              'Albums', result.albums, (a) => _buildAlbumTile(a)),
+        if (result.artists.isNotEmpty)
+          _buildResultSection(
+              'Artists', result.artists, (a) => _buildArtistTile(a)),
+        if (result.playlists.isNotEmpty)
+          _buildResultSection(
+              'Playlists', result.playlists, (p) => _buildPlaylistTile(p)),
         if (_continuationToken != null)
           const Padding(
             padding: EdgeInsets.all(16),
@@ -251,7 +278,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  Widget _buildResultSection<T>(String title, List<T> items, Widget Function(T) builder) {
+  Widget _buildResultSection<T>(
+      String title, List<T> items, Widget Function(T) builder) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -282,10 +310,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return ListTile(
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(4),
-        child: Image.network(track.artworkUrl, width: 48, height: 48, fit: BoxFit.cover),
+        child: Image.network(track.artworkUrl,
+            width: 48, height: 48, fit: BoxFit.cover),
       ),
       title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle:
+          Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
       trailing: PopupMenuButton(
         itemBuilder: (context) => [
           const PopupMenuItem(value: 'play', child: Text('Play')),
@@ -301,10 +331,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return ListTile(
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(4),
-        child: Image.network(video.artworkUrl, width: 48, height: 48, fit: BoxFit.cover),
+        child: Image.network(video.artworkUrl,
+            width: 48, height: 48, fit: BoxFit.cover),
       ),
       title: Text(video.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(video.channelTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text(video.channelTitle,
+          maxLines: 1, overflow: TextOverflow.ellipsis),
       onTap: () {},
     );
   }
@@ -313,10 +345,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return ListTile(
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(4),
-        child: Image.network(album.artworkUrl, width: 48, height: 48, fit: BoxFit.cover),
+        child: Image.network(album.artworkUrl,
+            width: 48, height: 48, fit: BoxFit.cover),
       ),
       title: Text(album.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(album.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle:
+          Text(album.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
       onTap: () => context.go('/album/${album.id}'),
     );
   }
@@ -337,10 +371,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return ListTile(
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(4),
-        child: Image.network(playlist.artworkUrl, width: 48, height: 48, fit: BoxFit.cover),
+        child: Image.network(playlist.artworkUrl,
+            width: 48, height: 48, fit: BoxFit.cover),
       ),
       title: Text(playlist.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text('${playlist.trackCount} songs', maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text('${playlist.trackCount} songs',
+          maxLines: 1, overflow: TextOverflow.ellipsis),
       onTap: () => context.go('/playlist/${playlist.id}'),
     );
   }
@@ -352,11 +388,23 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   String _getFilterLabel(SearchFilter filter) {
     switch (filter) {
-      case SearchFilter.songs: return 'Songs';
-      case SearchFilter.videos: return 'Videos';
-      case SearchFilter.albums: return 'Albums';
-      case SearchFilter.artists: return 'Artists';
-      case SearchFilter.playlists: return 'Playlists';
+      case SearchFilter.songs:
+        return 'Songs';
+      case SearchFilter.videos:
+        return 'Videos';
+      case SearchFilter.albums:
+        return 'Albums';
+      case SearchFilter.artists:
+        return 'Artists';
+      case SearchFilter.playlists:
+        return 'Playlists';
     }
+  }
+
+  SearchFilter _filterFromName(String name) {
+    return SearchFilter.values.firstWhere(
+      (f) => f.name == name,
+      orElse: () => SearchFilter.songs,
+    );
   }
 }

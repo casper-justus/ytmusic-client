@@ -1,27 +1,26 @@
 library ytmusic_client.core.domain.audio_player;
 
 import 'dart:async';
-import 'package:just_audio/just_audio.dart';
+import 'package:just_audio/just_audio.dart' as ja;
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:audio_session/audio_session.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:logging/logging.dart';
 import '../../shared/models/track.dart';
 
 final _logger = Logger('AudioPlayerService');
 
 class AudioPlayerService {
-  final AudioPlayer _player = AudioPlayer();
-  final AudioPlayer _preloadPlayer = AudioPlayer();
+  final ja.AudioPlayer _player = ja.AudioPlayer();
+  final ja.AudioPlayer _preloadPlayer = ja.AudioPlayer();
   final _stateController = StreamController<PlayerState>.broadcast();
-  
+
   PlayerState _currentState = PlayerState.stopped;
   Track? _currentTrack;
   Track? _preloadedTrack;
-  StreamSubscription<PlayerState>? _playerStateSub;
+  StreamSubscription<ja.PlayerState>? _playerStateSub;
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<Duration?>? _durationSub;
-  StreamSubscription<ProcessingState>? _processingStateSub;
+  StreamSubscription<ja.ProcessingState>? _processingStateSub;
 
   AudioPlayerService() {
     _initialize();
@@ -31,7 +30,7 @@ class AudioPlayerService {
     // Configure audio session
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.music());
-    
+
     // Set up Just Audio Background for notifications
     await JustAudioBackground.init(
       androidNotificationChannelId: 'com.ytmusic.playback',
@@ -44,8 +43,8 @@ class AudioPlayerService {
 
   void _setupListeners() {
     _playerStateSub = _player.playerStateStream.listen((state) {
-      _currentState = state;
-      _stateController.add(state);
+      _currentState = _mapPlayerState(state);
+      _stateController.add(_currentState);
     });
 
     _positionSub = _player.positionStream.listen((position) {
@@ -67,7 +66,7 @@ class AudioPlayerService {
 
     if (track.audioStreamUrl != null) {
       await _player.setAudioSource(
-        AudioSource.uri(
+        ja.AudioSource.uri(
           Uri.parse(track.audioStreamUrl!),
           tag: MediaItem(
             id: track.id,
@@ -116,11 +115,11 @@ class AudioPlayerService {
   Future<void> preloadNext(Track track) async {
     _logger.fine('Preloading next track: ${track.title}');
     _preloadedTrack = track;
-    
+
     if (track.audioStreamUrl != null) {
       try {
         await _preloadPlayer.setAudioSource(
-          AudioSource.uri(Uri.parse(track.audioStreamUrl!)),
+          ja.AudioSource.uri(Uri.parse(track.audioStreamUrl!)),
           preload: true,
         );
       } catch (e) {
@@ -133,7 +132,7 @@ class AudioPlayerService {
     if (_preloadedTrack != null && _preloadedTrack!.audioStreamUrl != null) {
       final currentPos = _player.position;
       await _player.setAudioSource(
-        AudioSource.uri(
+        ja.AudioSource.uri(
           Uri.parse(_preloadedTrack!.audioStreamUrl!),
           tag: MediaItem(
             id: _preloadedTrack!.id,
@@ -154,6 +153,20 @@ class AudioPlayerService {
 
   void _notifyPositionUpdate(Duration position) {
     // Notify queue controller
+  }
+
+  PlayerState _mapPlayerState(ja.PlayerState state) {
+    switch (state.processingState) {
+      case ja.ProcessingState.idle:
+        return PlayerState.stopped;
+      case ja.ProcessingState.loading:
+      case ja.ProcessingState.buffering:
+        return PlayerState.buffering;
+      case ja.ProcessingState.ready:
+        return state.playing ? PlayerState.playing : PlayerState.paused;
+      case ja.ProcessingState.completed:
+        return PlayerState.completed;
+    }
   }
 
   void _notifyDurationUpdate(Duration? duration) {

@@ -67,7 +67,8 @@ class SectionGrid<T> extends StatelessWidget {
         mainAxisSpacing: spacing,
       ),
       itemCount: items.length,
-      itemBuilder: (context, index) => itemBuilder(context, items[index], index),
+      itemBuilder: (context, index) =>
+          itemBuilder(context, items[index], index),
     );
   }
 }

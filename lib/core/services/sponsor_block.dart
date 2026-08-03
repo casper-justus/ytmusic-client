@@ -8,11 +8,10 @@ final _logger = Logger('SponsorBlock');
 
 class SponsorBlockService {
   static const String _apiUrl = 'https://sponsor.ajay.app/api';
-  
+
   final Dio _dio;
 
-  SponsorBlockService({Dio? dio})
-      : _dio = dio ?? _createDefaultDio();
+  SponsorBlockService({Dio? dio}) : _dio = dio ?? _createDefaultDio();
 
   static Dio _createDefaultDio() {
     return Dio(BaseOptions(
@@ -31,13 +30,21 @@ class SponsorBlockService {
         '/skipSegments',
         queryParameters: {
           'videoID': videoId,
-          'categories': jsonEncode(['sponsor', 'intro', 'outro', 'selfpromo', 'interaction', 'music_offtopic']),
+          'categories': jsonEncode([
+            'sponsor',
+            'intro',
+            'outro',
+            'selfpromo',
+            'interaction',
+            'music_offtopic'
+          ]),
         },
       );
 
       if (response.statusCode == 200 && response.data is List) {
         return (response.data as List)
-            .map((json) => SponsorSegment.fromJson(json as Map<String, dynamic>))
+            .map(
+                (json) => SponsorSegment.fromJson(json as Map<String, dynamic>))
             .toList();
       } else if (response.statusCode == 404) {
         return null;
@@ -74,7 +81,8 @@ class SponsorBlockService {
     }
   }
 
-  List<Duration> getSkipRanges(String videoId, Duration currentPosition, List<SponsorSegment> segments) {
+  List<Duration> getSkipRanges(
+      String videoId, Duration currentPosition, List<SponsorSegment> segments) {
     final ranges = <Duration>[];
     for (final segment in segments) {
       if (segment.segment.isNotEmpty) {
@@ -108,7 +116,10 @@ class SponsorSegment {
 
   factory SponsorSegment.fromJson(Map<String, dynamic> json) {
     final segmentData = json['segment'] as List<dynamic>?;
-    final segment = segmentData?.map((e) => Duration(seconds: (e as num).toInt())).toList() ?? [];
+    final segment = segmentData
+            ?.map((e) => Duration(seconds: (e as num).toInt()))
+            .toList() ??
+        [];
 
     return SponsorSegment(
       uuid: json['UUID'] as String? ?? '',
@@ -121,26 +132,39 @@ class SponsorSegment {
   }
 
   Map<String, dynamic> toJson() => {
-    'UUID': uuid,
-    'videoID': videoId,
-    'segment': segment.map((d) => d.inSeconds).toList(),
-    'category': category,
-    'votes': votes,
-    'submitter': submitter,
-  };
+        'UUID': uuid,
+        'videoID': videoId,
+        'segment': segment.map((d) => d.inSeconds).toList(),
+        'category': category,
+        'votes': votes,
+        'submitter': submitter,
+      };
 }
 
-enum SponsorCategory { sponsor, intro, outro, selfpromo, interaction, music_offtopic }
+enum SponsorCategory {
+  sponsor,
+  intro,
+  outro,
+  selfpromo,
+  interaction,
+  music_offtopic
+}
 
 extension SponsorCategoryExtension on SponsorCategory {
   String get value {
     switch (this) {
-      case SponsorCategory.sponsor: return 'sponsor';
-      case SponsorCategory.intro: return 'intro';
-      case SponsorCategory.outro: return 'outro';
-      case SponsorCategory.selfpromo: return 'selfpromo';
-      case SponsorCategory.interaction: return 'interaction';
-      case SponsorCategory.music_offtopic: return 'music_offtopic';
+      case SponsorCategory.sponsor:
+        return 'sponsor';
+      case SponsorCategory.intro:
+        return 'intro';
+      case SponsorCategory.outro:
+        return 'outro';
+      case SponsorCategory.selfpromo:
+        return 'selfpromo';
+      case SponsorCategory.interaction:
+        return 'interaction';
+      case SponsorCategory.music_offtopic:
+        return 'music_offtopic';
     }
   }
 }

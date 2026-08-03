@@ -17,13 +17,14 @@ abstract class PoTokenProvider {
 }
 
 class PoTokenProviderImpl implements PoTokenProvider {
-  static const String _challengeUrl = '$kYouTubeBaseUrl/youtubei/v1/validate_playback';
+  static const String _challengeUrl =
+      '$kYouTubeBaseUrl/youtubei/v1/validate_playback';
   static const String _apiKey = kYouTubeApiKey;
-  
+
   final Dio _dio;
   final SharedPreferences _prefs;
   final Map<String, _CachedToken> _cache = {};
-  
+
   PoTokenProviderImpl({
     Dio? dio,
     required SharedPreferences prefs,
@@ -37,7 +38,8 @@ class PoTokenProviderImpl implements PoTokenProvider {
       receiveTimeout: const Duration(seconds: 15),
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'X-Goog-Api-Key': _apiKey,
       },
     ));
@@ -107,7 +109,8 @@ class PoTokenProviderImpl implements PoTokenProvider {
 
   String _generateChallenge() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = List<int>.generate(32, (_) => DateTime.now().microsecond % 256);
+    final random =
+        List<int>.generate(32, (_) => DateTime.now().microsecond % 256);
     final bytes = utf8.encode('$timestamp:${base64Url.encode(random)}');
     return base64Url.encode(sha256.convert(bytes).bytes);
   }
@@ -122,7 +125,8 @@ class PoTokenProviderImpl implements PoTokenProvider {
   @override
   Future<void> warmUp() async {
     await _loadCache();
-    _logger.info('PoToken provider warmed up with ${_cache.length} cached tokens');
+    _logger
+        .info('PoToken provider warmed up with ${_cache.length} cached tokens');
   }
 
   Future<void> _loadCache() async {
@@ -170,7 +174,8 @@ class MockPoTokenProvider implements PoTokenProvider {
   @override
   Future<String?> getPoToken(String videoId) async {
     if (_shouldFail) return null;
-    return _mockTokens[videoId] ?? 'mock_po_token_${DateTime.now().millisecondsSinceEpoch}';
+    return _mockTokens[videoId] ??
+        'mock_po_token_${DateTime.now().millisecondsSinceEpoch}';
   }
 
   @override

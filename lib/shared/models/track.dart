@@ -1,5 +1,9 @@
-part of 'track.freezed.dart';
-part of 'track.g.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
+import '../../core/data/database.dart';
+
+part 'track.freezed.dart';
+part 'track.g.dart';
 
 @freezed
 abstract class Track with _$Track {
@@ -22,6 +26,33 @@ abstract class Track with _$Track {
     Map<String, dynamic>? rawData,
   }) = _Track;
 
+  factory Track.empty() => const Track(
+        id: '',
+        title: '',
+        artist: '',
+        artistId: '',
+        duration: 0,
+        artworkUrl: '',
+      );
+
+  factory Track.fromEntity(TrackEntity entity) => Track(
+        id: entity.id,
+        title: entity.title,
+        artist: entity.artist,
+        artistId: entity.artistId,
+        album: entity.album,
+        albumId: entity.albumId,
+        duration: entity.duration,
+        artworkUrl: entity.artworkUrl,
+        audioStreamUrl: entity.audioStreamUrl,
+        itag: entity.itag,
+        bitrate: entity.bitrate,
+        lyricsId: entity.lyricsId,
+        isExplicit: entity.isExplicit,
+        isAvailable: entity.isAvailable,
+        availableCountries: entity.availableCountries,
+      );
+
   factory Track.fromJson(Map<String, dynamic> json) => _$TrackFromJson(json);
 }
 
@@ -42,7 +73,8 @@ abstract class Playlist with _$Playlist {
     Map<String, dynamic>? rawData,
   }) = _Playlist;
 
-  factory Playlist.fromJson(Map<String, dynamic> json) => _$PlaylistFromJson(json);
+  factory Playlist.fromJson(Map<String, dynamic> json) =>
+      _$PlaylistFromJson(json);
 }
 
 @freezed
@@ -95,7 +127,8 @@ abstract class QueueState with _$QueueState {
     @Default(Duration.zero) Duration bufferedPosition,
   }) = _QueueState;
 
-  factory QueueState.fromJson(Map<String, dynamic> json) => _$QueueStateFromJson(json);
+  factory QueueState.fromJson(Map<String, dynamic> json) =>
+      _$QueueStateFromJson(json);
 }
 
 @freezed
@@ -119,7 +152,8 @@ abstract class LyricsLine with _$LyricsLine {
     @Default([]) List<WordTimestamp> words,
   }) = _LyricsLine;
 
-  factory LyricsLine.fromJson(Map<String, dynamic> json) => _$LyricsLineFromJson(json);
+  factory LyricsLine.fromJson(Map<String, dynamic> json) =>
+      _$LyricsLineFromJson(json);
 }
 
 @freezed
@@ -130,7 +164,8 @@ abstract class WordTimestamp with _$WordTimestamp {
     required String word,
   }) = _WordTimestamp;
 
-  factory WordTimestamp.fromJson(Map<String, dynamic> json) => _$WordTimestampFromJson(json);
+  factory WordTimestamp.fromJson(Map<String, dynamic> json) =>
+      _$WordTimestampFromJson(json);
 }
 
 enum LyricsSource { innerTube, lrclib, none }
@@ -149,7 +184,8 @@ abstract class SearchResult with _$SearchResult {
     String? continuationToken,
   }) = _SearchResult;
 
-  factory SearchResult.fromJson(Map<String, dynamic> json) => _$SearchResultFromJson(json);
+  factory SearchResult.fromJson(Map<String, dynamic> json) =>
+      _$SearchResultFromJson(json);
 }
 
 @freezed
@@ -180,10 +216,20 @@ abstract class HomeSection with _$HomeSection {
     Map<String, dynamic>? rawData,
   }) = _HomeSection;
 
-  factory HomeSection.fromJson(Map<String, dynamic> json) => _$HomeSectionFromJson(json);
+  factory HomeSection.fromJson(Map<String, dynamic> json) =>
+      _$HomeSectionFromJson(json);
 }
 
-enum HomeSectionType { quickPicks, recommendedAlbums, moods, genres, newReleases, libraryPlaylists, recentlyPlayed, mixedForYou }
+enum HomeSectionType {
+  quickPicks,
+  recommendedAlbums,
+  moods,
+  genres,
+  newReleases,
+  libraryPlaylists,
+  recentlyPlayed,
+  mixedForYou
+}
 
 @freezed
 abstract class MoodCategory with _$MoodCategory {
@@ -196,7 +242,8 @@ abstract class MoodCategory with _$MoodCategory {
     Map<String, dynamic>? rawData,
   }) = _MoodCategory;
 
-  factory MoodCategory.fromJson(Map<String, dynamic> json) => _$MoodCategoryFromJson(json);
+  factory MoodCategory.fromJson(Map<String, dynamic> json) =>
+      _$MoodCategoryFromJson(json);
 }
 
 @freezed
@@ -215,7 +262,8 @@ abstract class AudioStream with _$AudioStream {
     Map<String, dynamic>? rawData,
   }) = _AudioStream;
 
-  factory AudioStream.fromJson(Map<String, dynamic> json) => _$AudioStreamFromJson(json);
+  factory AudioStream.fromJson(Map<String, dynamic> json) =>
+      _$AudioStreamFromJson(json);
 }
 
 @freezed
@@ -229,5 +277,6 @@ abstract class UserProfile with _$UserProfile {
     Map<String, dynamic>? rawData,
   }) = _UserProfile;
 
-  factory UserProfile.fromJson(Map<String, dynamic> json) => _$UserProfileFromJson(json);
+  factory UserProfile.fromJson(Map<String, dynamic> json) =>
+      _$UserProfileFromJson(json);
 }

@@ -9,6 +9,7 @@ import '../../../core/domain/session_manager.dart';
 import '../../../core/presentation/providers.dart';
 import '../../../core/presentation/theme.dart';
 import '../../../core/services/ota_service.dart';
+import '../../../shared/models/track.dart';
 
 final _logger = Logger('SettingsScreen');
 
@@ -61,7 +62,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           SwitchListTile(
             title: const Text('Normalize volume'),
-            subtitle: const Text('Adjust playback volume to a consistent level'),
+            subtitle:
+                const Text('Adjust playback volume to a consistent level'),
             value: true,
             onChanged: (value) {},
           ),
@@ -122,7 +124,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               final theme = ref.watch(themeProvider);
               return ListTile(
                 title: const Text('Theme'),
-                subtitle: Text(theme.seedColor == const Color(0xFFDB4437) ? 'System (YouTube Red)' : 'Custom'),
+                subtitle: Text(theme.seedColor == const Color(0xFFDB4437)
+                    ? 'System (YouTube Red)'
+                    : 'Custom'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showThemeDialog(),
               );
@@ -242,7 +246,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             backgroundImage: NetworkImage(profile.avatarUrl),
             radius: 24,
           ),
-          title: Text(profile.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+          title: Text(profile.name,
+              style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: Text(profile.email ?? ''),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {},
@@ -279,9 +284,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w600,
-        ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
       ),
     );
   }
@@ -321,7 +326,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
         ],
       ),
     );
@@ -343,7 +350,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   TextButton(onPressed: () {}, child: const Text('Reset')),
-                  FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Done')),
+                  FilledButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Done')),
                 ],
               ),
             ],
@@ -408,21 +417,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Colors.amber,
               Colors.orange,
               Colors.deepOrange,
-            ].map((color) => GestureDetector(
-              onTap: () {
-                ref.read(themeProvider.notifier).updateSeedColor(color);
-                Navigator.pop(context);
-              },
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-              ),
-            )).toList(),
+            ]
+                .map((color) => GestureDetector(
+                      onTap: () {
+                        ref.read(themeProvider.notifier).updateSeedColor(color);
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                      ),
+                    ))
+                .toList(),
           ),
         ),
       ),
@@ -438,9 +449,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Sign out?'),
-        content: const Text('You will be signed out and local data will be kept.'),
+        content:
+            const Text('You will be signed out and local data will be kept.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           FilledButton(
             onPressed: () {
               ref.read(authModeProvider.notifier).setAnonymous();
@@ -461,7 +475,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('To sign in, you need to provide your YouTube cookies. This can be done by:'),
+            const Text(
+                'To sign in, you need to provide your YouTube cookies. This can be done by:'),
             const SizedBox(height: 16),
             const Text('1. Open YouTube Music in your browser'),
             const Text('2. Open developer tools (F12)'),
@@ -479,7 +494,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
         ],
       ),
     );
@@ -495,14 +512,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear cache?'),
-        content: const Text('This will remove all cached images and temporary data.'),
+        content: const Text(
+            'This will remove all cached images and temporary data.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          FilledButton(onPressed: () {
-            // Clear cache
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cache cleared')));
-          }, child: const Text('Clear')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () {
+                // Clear cache
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Cache cleared')));
+              },
+              child: const Text('Clear')),
         ],
       ),
     );
@@ -513,14 +536,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear history?'),
-        content: const Text('This will remove all listening and search history.'),
+        content:
+            const Text('This will remove all listening and search history.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          FilledButton(onPressed: () {
-            // Clear history
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('History cleared')));
-          }, child: const Text('Clear')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () {
+                // Clear history
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('History cleared')));
+              },
+              child: const Text('Clear')),
         ],
       ),
     );
@@ -531,7 +560,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showLicenses() {
-    showLicensePage(context: context, applicationName: 'YTMusic', applicationVersion: '1.0.0');
+    showLicensePage(
+        context: context,
+        applicationName: 'YTMusic',
+        applicationVersion: '1.0.0');
   }
 
   void _launchUrl(String url) async {
@@ -569,7 +601,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ExpansionTile(
             title: Text('Update Available: v${info.versionName}'),
-            subtitle: Text(info.isPreRelease ? 'Pre-release (Debug)' : 'Stable Release'),
+            subtitle: Text(
+                info.isPreRelease ? 'Pre-release (Debug)' : 'Stable Release'),
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -577,7 +610,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (info.changelog.isNotEmpty) ...[
-                      Text('Changelog:', style: Theme.of(context).textTheme.titleSmall),
+                      Text('Changelog:',
+                          style: Theme.of(context).textTheme.titleSmall),
                       const SizedBox(height: 8),
                       Text(info.changelog),
                       const SizedBox(height: 16),
@@ -612,7 +646,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Downloading Update...', style: Theme.of(context).textTheme.titleMedium),
+                Text('Downloading Update...',
+                    style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 12),
                 LinearProgressIndicator(value: progress),
                 const SizedBox(height: 8),
@@ -645,7 +680,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       OtaError(message: final msg) => Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ListTile(
-            leading: Icon(Icons.error, color: Theme.of(context).colorScheme.error),
+            leading:
+                Icon(Icons.error, color: Theme.of(context).colorScheme.error),
             title: const Text('Update check failed'),
             subtitle: Text(msg),
             trailing: TextButton(
@@ -682,10 +718,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     children: [
                       Text('Version ${info.versionName} available'),
                       const SizedBox(height: 8),
-                      Text(info.isPreRelease ? 'Debug/Pre-release build' : 'Stable release'),
+                      Text(info.isPreRelease
+                          ? 'Debug/Pre-release build'
+                          : 'Stable release'),
                       if (info.changelog.isNotEmpty) ...[
                         const SizedBox(height: 16),
-                        Text('Changes:', style: Theme.of(context).textTheme.titleSmall),
+                        Text('Changes:',
+                            style: Theme.of(context).textTheme.titleSmall),
                         Text(info.changelog),
                       ],
                     ],
@@ -700,17 +739,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ],
                   ),
                 _ => const Text('Tap to check for updates'),
-              };
-            },
-          loading: () => const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Checking...'),
-            ],
-          ),
-          error: (_, __) => const Text('Error loading update status'),
+              },
+              loading: () => const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Checking...'),
+                ],
+              ),
+              error: (_, __) => const Text('Error loading update status'),
+            );
+          },
         ),
         actions: [
           TextButton(
@@ -736,10 +776,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Permission Required'),
-          content: const Text('To install updates, the app needs permission to install packages. Open settings to enable this?'),
+          content: const Text(
+              'To install updates, the app needs permission to install packages. Open settings to enable this?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Open Settings')),
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel')),
+            FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Open Settings')),
           ],
         ),
       );

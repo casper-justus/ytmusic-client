@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import '../../core/domain/queue_controller.dart';
 import '../../core/domain/audio_player.dart';
 import '../../core/presentation/providers.dart';
+import '../models/track.dart';
 
 final _logger = Logger('MiniPlayer');
 
@@ -18,9 +19,9 @@ class MiniPlayer extends ConsumerWidget {
     final playerState = ref.watch(audioPlayerProvider).currentState;
     final position = ref.watch(audioPlayerProvider).position;
     final duration = ref.watch(audioPlayerProvider).duration;
-    
+
     final track = queueState.currentTrack;
-    
+
     if (track.id.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -52,7 +53,8 @@ class MiniPlayer extends ConsumerWidget {
                   errorBuilder: (_, __, ___) => Container(
                     width: 56,
                     height: 56,
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: Icon(
                       Icons.music_note,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -61,7 +63,7 @@ class MiniPlayer extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              
+
               // Track info
               Expanded(
                 child: Column(
@@ -73,21 +75,22 @@ class MiniPlayer extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                     Text(
                       track.artist,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                     ),
                   ],
                 ),
               ),
-              
+
               // Progress bar
               SizedBox(
                 width: 80,
@@ -96,9 +99,12 @@ class MiniPlayer extends ConsumerWidget {
                   children: [
                     if (duration != null && duration > Duration.zero)
                       LinearProgressIndicator(
-                        value: position / duration,
+                        value: duration.inMilliseconds > 0
+                            ? position.inMilliseconds / duration.inMilliseconds
+                            : 0.0,
                         minHeight: 2,
-                        backgroundColor: Theme.of(context).colorScheme.outlineVariant,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.outlineVariant,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           Theme.of(context).colorScheme.primary,
                         ),
@@ -110,24 +116,30 @@ class MiniPlayer extends ConsumerWidget {
                       children: [
                         Text(
                           _formatDuration(position),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                         Text(
                           _formatDuration(duration ?? Duration.zero),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(width: 12),
-              
+
               // Controls
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -139,13 +151,15 @@ class MiniPlayer extends ConsumerWidget {
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    onPressed: () => ref.read(queueControllerProvider).shuffleQueue(),
+                    onPressed: () =>
+                        ref.read(queueControllerProvider).shuffleQueue(),
                     tooltip: 'Shuffle',
                     iconSize: 20,
                   ),
                   IconButton(
                     icon: const Icon(Icons.skip_previous),
-                    onPressed: () => ref.read(queueControllerProvider).previous(),
+                    onPressed: () =>
+                        ref.read(queueControllerProvider).previous(),
                     tooltip: 'Previous',
                     iconSize: 24,
                   ),
@@ -195,7 +209,9 @@ class MiniPlayer extends ConsumerWidget {
                       ];
                       final currentIndex = modes.indexOf(queueState.mode);
                       final nextMode = modes[(currentIndex + 1) % modes.length];
-                      ref.read(queueControllerProvider).setPlaybackMode(nextMode);
+                      ref
+                          .read(queueControllerProvider)
+                          .setPlaybackMode(nextMode);
                     },
                     tooltip: 'Repeat',
                     iconSize: 20,

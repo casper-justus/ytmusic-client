@@ -23,20 +23,22 @@ class QueueController {
     QueueState? initialState,
   })  : _innerTube = innerTube,
         _streamExtractor = streamExtractor,
-        _currentState = initialState ?? QueueState(
-          currentTrack: Track.empty(),
-          queueList: [],
-          index: 0,
-        ) {
+        _currentState = initialState ??
+            QueueState(
+              currentTrack: Track.empty(),
+              queueList: [],
+              index: 0,
+            ) {
     _stateController.add(_currentState);
   }
 
   Stream<QueueState> get stateStream => _stateController.stream;
   QueueState get currentState => _currentState;
 
-  Future<void> playTrack(Track track, {List<Track>? queue, bool isRadio = false}) async {
+  Future<void> playTrack(Track track,
+      {List<Track>? queue, bool isRadio = false}) async {
     _logger.info('Playing track: ${track.title}');
-    
+
     final stream = await _streamExtractor.getBestAudioStream(track.id);
     if (stream == null) {
       throw Exception('No playable stream found for ${track.id}');
@@ -44,7 +46,7 @@ class QueueController {
 
     final updatedTrack = track.copyWith(audioStreamUrl: stream.url);
     List<Track> newQueue = queue ?? [updatedTrack];
-    
+
     if (!newQueue.any((t) => t.id == updatedTrack.id)) {
       newQueue.insert(0, updatedTrack);
     }
@@ -61,13 +63,14 @@ class QueueController {
     if (isRadio) {
       await _fetchRadioContinuation(updatedTrack.id);
     }
-    
+
     _startPreloadMonitoring();
   }
 
-  Future<void> playQueue(List<Track> queue, {int startIndex = 0, bool isRadio = false}) async {
+  Future<void> playQueue(List<Track> queue,
+      {int startIndex = 0, bool isRadio = false}) async {
     if (queue.isEmpty) return;
-    
+
     final firstTrack = queue[startIndex];
     await playTrack(firstTrack, queue: queue, isRadio: isRadio);
   }
@@ -75,7 +78,8 @@ class QueueController {
   Future<void> next() async {
     if (_currentState.index < _currentState.queueList.length - 1) {
       await _playAtIndex(_currentState.index + 1);
-    } else if (_currentState.isRadioActive && _currentState.continuationToken != null) {
+    } else if (_currentState.isRadioActive &&
+        _currentState.continuationToken != null) {
       await _loadMoreRadioTracks();
     }
   }
@@ -88,7 +92,7 @@ class QueueController {
 
   Future<void> _playAtIndex(int index) async {
     if (index < 0 || index >= _currentState.queueList.length) return;
-    
+
     final track = _currentState.queueList[index];
     final stream = await _streamExtractor.getBestAudioStream(track.id);
     if (stream == null) {
@@ -106,7 +110,7 @@ class QueueController {
       currentPosition: 0.0,
     );
     _stateController.add(_currentState);
-    
+
     _startPreloadMonitoring();
   }
 
@@ -121,7 +125,7 @@ class QueueController {
 
   Future<void> _loadMoreRadioTracks() async {
     if (_currentState.continuationToken == null) return;
-    
+
     try {
       final response = await _innerTube.next(
         videoId: _currentState.currentTrack.id,
@@ -134,21 +138,24 @@ class QueueController {
   }
 
   void _parseNextResponse(Map<String, dynamic> response) {
-    final contents = response['contents']?['singleColumnMusicWatchNextRenderer']?['tabbedRenderers']?[0]?['tabRenderer']?['content']?['musicQueueRenderer']?['content']?['playlistPanelRenderer']?['contents'];
-    
+    final contents = response['contents']?['singleColumnMusicWatchNextRenderer']
+                ?['tabbedRenderers']?[0]?['tabRenderer']?['content']
+            ?['musicQueueRenderer']?['content']?['playlistPanelRenderer']
+        ?['contents'];
+
     if (contents != null) {
       final newTracks = <Track>[];
       for (final item in contents) {
         final track = _parseQueueItem(item);
         if (track != null) newTracks.add(track);
       }
-      
+
       if (newTracks.isNotEmpty) {
         final currentQueue = List<Track>.from(_currentState.queueList);
         currentQueue.addAll(newTracks);
-        
+
         final continuation = _extractContinuation(response);
-        
+
         _currentState = _currentState.copyWith(
           queueList: currentQueue,
           continuationToken: continuation,
@@ -160,16 +167,23 @@ class QueueController {
 
   Track? _parseQueueItem(Map<String, dynamic> item) {
     try {
-      final renderer = item['playlistPanelVideoRenderer'] ?? item['musicQueueItemRenderer'];
+      final renderer =
+          item['playlistPanelVideoRenderer'] ?? item['musicQueueItemRenderer'];
       if (renderer == null) return null;
 
       final videoId = renderer['videoId'] as String?;
-      final title = renderer['title']?['runs']?[0]?['text'] as String? ?? renderer['title']?['simpleText'] as String?;
-      final artist = renderer['longBylineText']?['runs']?[0]?['text'] as String? ?? renderer['shortBylineText']?['runs']?[0]?['text'] as String?;
-      final artistId = renderer['longBylineText']?['runs']?[0]?['navigationEndpoint']?['browseEndpoint']?['browseId'] as String?;
-      final duration = _parseDuration(renderer['lengthText']?['simpleText'] as String?);
-      final artwork = renderer['thumbnail']?['thumbnails']?.last?['url'] as String?;
-      
+      final title = renderer['title']?['runs']?[0]?['text'] as String? ??
+          renderer['title']?['simpleText'] as String?;
+      final artist =
+          renderer['longBylineText']?['runs']?[0]?['text'] as String? ??
+              renderer['shortBylineText']?['runs']?[0]?['text'] as String?;
+      final artistId = renderer['longBylineText']?['runs']?[0]
+          ?['navigationEndpoint']?['browseEndpoint']?['browseId'] as String?;
+      final duration =
+          _parseDuration(renderer['lengthText']?['simpleText'] as String?);
+      final artwork =
+          renderer['thumbnail']?['thumbnails']?.last?['url'] as String?;
+
       if (videoId == null || title == null || artist == null) return null;
 
       return Track(
@@ -188,7 +202,11 @@ class QueueController {
 
   String? _extractContinuation(Map<String, dynamic> response) {
     try {
-      return response['contents']?['singleColumnMusicWatchNextRenderer']?['tabbedRenderers']?[0]?['tabRenderer']?['content']?['musicQueueRenderer']?['content']?['playlistPanelRenderer']?['continuations']?[0]?['nextContinuationData']?['continuation'] as String?;
+      return response['contents']?['singleColumnMusicWatchNextRenderer']
+                      ?['tabbedRenderers']?[0]?['tabRenderer']?['content']
+                  ?['musicQueueRenderer']?['content']?['playlistPanelRenderer']
+              ?['continuations']?[0]?['nextContinuationData']?['continuation']
+          as String?;
     } catch (_) {
       return null;
     }
@@ -212,7 +230,7 @@ class QueueController {
   void _checkPreloadCondition() {
     final position = _currentState.currentPosition;
     final duration = _currentState.currentTrack.duration;
-    
+
     if (duration > 0 && position / duration * 100 >= _preloadThresholdPercent) {
       _preloadNextTrack();
     }
@@ -234,7 +252,8 @@ class QueueController {
       final stream = await _streamExtractor.getBestAudioStream(nextTrack.id);
       if (stream != null) {
         final updatedQueue = List<Track>.from(_currentState.queueList);
-        updatedQueue[nextIndex] = nextTrack.copyWith(audioStreamUrl: stream.url);
+        updatedQueue[nextIndex] =
+            nextTrack.copyWith(audioStreamUrl: stream.url);
         _currentState = _currentState.copyWith(queueList: updatedQueue);
         _stateController.add(_currentState);
         _logger.fine('Preloaded next track: ${nextTrack.title}');
@@ -261,7 +280,8 @@ class QueueController {
 
   void shuffleQueue() {
     final current = _currentState.currentTrack;
-    final remaining = List<Track>.from(_currentState.queueList)..remove(current);
+    final remaining = List<Track>.from(_currentState.queueList)
+      ..remove(current);
     remaining.shuffle();
     _currentState = _currentState.copyWith(
       queueList: [current, ...remaining],
@@ -279,11 +299,11 @@ class QueueController {
 
 extension TrackEmpty on Track {
   static Track empty() => Track(
-    id: '',
-    title: '',
-    artist: '',
-    artistId: '',
-    duration: 0,
-    artworkUrl: '',
-  );
+        id: '',
+        title: '',
+        artist: '',
+        artistId: '',
+        duration: 0,
+        artworkUrl: '',
+      );
 }

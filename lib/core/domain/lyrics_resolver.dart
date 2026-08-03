@@ -4,16 +4,18 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import '../../shared/models/track.dart';
+import '../data/innertube_client.dart';
 
 final _logger = Logger('LyricsResolver');
 
 abstract class LyricsResolver {
-  Future<Lyrics> resolveLyrics(String trackId, {String? title, String? artist, int? duration});
+  Future<Lyrics> resolveLyrics(String trackId,
+      {String? title, String? artist, int? duration});
 }
 
 class DualSourceLyricsResolver implements LyricsResolver {
   static const String _lrclibUrl = 'https://lrclib.net/api/get';
-  
+
   final InnerTubeClient _innerTube;
   final Dio _dio;
 
@@ -36,7 +38,8 @@ class DualSourceLyricsResolver implements LyricsResolver {
   }
 
   @override
-  Future<Lyrics> resolveLyrics(String trackId, {String? title, String? artist, int? duration}) async {
+  Future<Lyrics> resolveLyrics(String trackId,
+      {String? title, String? artist, int? duration}) async {
     // Try InnerTube first
     final innerTubeLyrics = await _fetchInnerTubeLyrics(trackId);
     if (innerTubeLyrics != null && innerTubeLyrics.hasSynced == true) {
@@ -54,12 +57,13 @@ class DualSourceLyricsResolver implements LyricsResolver {
     }
 
     // Return InnerTube lyrics even if not synced, or empty
-    return innerTubeLyrics ?? Lyrics(
-      trackId: trackId,
-      source: LyricsSource.none,
-      lines: [],
-      hasSynced: false,
-    );
+    return innerTubeLyrics ??
+        Lyrics(
+          trackId: trackId,
+          source: LyricsSource.none,
+          lines: [],
+          hasSynced: false,
+        );
   }
 
   Future<Lyrics?> _fetchInnerTubeLyrics(String videoId) async {
@@ -79,15 +83,17 @@ class DualSourceLyricsResolver implements LyricsResolver {
 
       final lines = <LyricsLine>[];
       final rawLrc = StringBuffer();
-      
+
       // Parse segments
       final segments = lyricsRenderer['lyrics']?['runs'] as List? ?? [];
       for (final segment in segments) {
         final text = segment['text'] as String?;
-        final timeMs = segment['navigationEndpoint']?['watchEndpoint']?['startTimeMillis'] as int?;
-        
+        final timeMs = segment['navigationEndpoint']?['watchEndpoint']
+            ?['startTimeMillis'] as int?;
+
         if (text != null && text.trim().isNotEmpty) {
-          final time = timeMs != null ? Duration(milliseconds: timeMs) : Duration.zero;
+          final time =
+              timeMs != null ? Duration(milliseconds: timeMs) : Duration.zero;
           lines.add(LyricsLine(time: time, text: text));
           rawLrc.writeln('[${_formatLrcTime(time)}]$text');
         }
@@ -102,7 +108,8 @@ class DualSourceLyricsResolver implements LyricsResolver {
           final text = lineData['text'] as String?;
           final timeMs = lineData['startTimeMs'] as int?;
           if (text != null && text.trim().isNotEmpty) {
-            final time = timeMs != null ? Duration(milliseconds: timeMs) : Duration.zero;
+            final time =
+                timeMs != null ? Duration(milliseconds: timeMs) : Duration.zero;
             lines.add(LyricsLine(time: time, text: text));
             rawLrc.writeln('[${_formatLrcTime(time)}]$text');
           }
@@ -122,7 +129,8 @@ class DualSourceLyricsResolver implements LyricsResolver {
     }
   }
 
-  Future<Lyrics?> _fetchLrclibLyrics(String title, String artist, int? duration) async {
+  Future<Lyrics?> _fetchLrclibLyrics(
+      String title, String artist, int? duration) async {
     try {
       final queryParams = <String, dynamic>{
         'track_name': title,
@@ -131,7 +139,7 @@ class DualSourceLyricsResolver implements LyricsResolver {
       };
 
       final response = await _dio.get('', queryParameters: queryParams);
-      
+
       if (response.statusCode == 200 && response.data != null) {
         return _parseLrclibResponse(response.data, title);
       } else if (response.statusCode == 404) {
@@ -148,7 +156,7 @@ class DualSourceLyricsResolver implements LyricsResolver {
     try {
       final syncedLyrics = data['syncedLyrics'] as String?;
       final plainLyrics = data['plainLyrics'] as String?;
-      
+
       if (syncedLyrics == null && plainLyrics == null) return null;
 
       final lines = <LyricsLine>[];
@@ -183,24 +191,25 @@ class DualSourceLyricsResolver implements LyricsResolver {
   List<LyricsLine> _parseLrcFormat(String lrc) {
     final lines = <LyricsLine>[];
     final regex = RegExp(r'\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\](.*)');
-    
+
     for (final line in lrc.split('\n')) {
       final match = regex.firstMatch(line);
       if (match != null) {
         final minutes = int.parse(match.group(1)!);
         final seconds = int.parse(match.group(2)!);
-        final milliseconds = match.group(3) != null 
+        final milliseconds = match.group(3) != null
             ? int.parse(match.group(3)!.padRight(3, '0').substring(0, 3))
             : 0;
         final text = match.group(4)?.trim() ?? '';
-        
+
         if (text.isNotEmpty) {
-          final time = Duration(minutes: minutes, seconds: seconds, milliseconds: milliseconds);
+          final time = Duration(
+              minutes: minutes, seconds: seconds, milliseconds: milliseconds);
           lines.add(LyricsLine(time: time, text: text));
         }
       }
     }
-    
+
     // Sort by time
     lines.sort((a, b) => a.time.compareTo(b.time));
     return lines;
@@ -209,7 +218,8 @@ class DualSourceLyricsResolver implements LyricsResolver {
   String _formatLrcTime(Duration time) {
     final minutes = time.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = time.inSeconds.remainder(60).toString().padLeft(2, '0');
-    final milliseconds = (time.inMilliseconds.remainder(1000) ~/ 10).toString().padLeft(2, '0');
+    final milliseconds =
+        (time.inMilliseconds.remainder(1000) ~/ 10).toString().padLeft(2, '0');
     return '$minutes:$seconds.$milliseconds';
   }
 }
@@ -218,13 +228,15 @@ class MockLyricsResolver implements LyricsResolver {
   final Map<String, Lyrics> _mockLyrics = {};
 
   @override
-  Future<Lyrics> resolveLyrics(String trackId, {String? title, String? artist, int? duration}) async {
-    return _mockLyrics[trackId] ?? Lyrics(
-      trackId: trackId,
-      source: LyricsSource.none,
-      lines: [],
-      hasSynced: false,
-    );
+  Future<Lyrics> resolveLyrics(String trackId,
+      {String? title, String? artist, int? duration}) async {
+    return _mockLyrics[trackId] ??
+        Lyrics(
+          trackId: trackId,
+          source: LyricsSource.none,
+          lines: [],
+          hasSynced: false,
+        );
   }
 
   void setMockLyrics(String trackId, Lyrics lyrics) {

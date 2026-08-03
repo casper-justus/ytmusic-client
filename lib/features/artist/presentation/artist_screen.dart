@@ -2,6 +2,7 @@ library ytmusic_client.features.artist.presentation.artist_screen;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import '../../../core/presentation/providers.dart';
 import '../../../shared/models/track.dart';
@@ -35,7 +36,8 @@ class _ArtistScreenState extends ConsumerState<ArtistScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
         _continuationToken != null) {
       _loadMore();
     }
@@ -64,8 +66,11 @@ class _ArtistScreenState extends ConsumerState<ArtistScreen> {
                       artist.artworkUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        child: const Center(child: Icon(Icons.person, size: 80)),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        child:
+                            const Center(child: Icon(Icons.person, size: 80)),
                       ),
                     ),
                     const DecoratedBox(
@@ -87,15 +92,21 @@ class _ArtistScreenState extends ConsumerState<ArtistScreen> {
                           children: [
                             Text(
                               artist.name,
-                              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineLarge
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             if (artist.subscriberCount != null)
                               Text(
                                 '${_formatCount(artist.subscriberCount!)} subscribers',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(color: Colors.white70),
                               ),
                           ],
                         ),
@@ -125,7 +136,8 @@ class _ArtistScreenState extends ConsumerState<ArtistScreen> {
                     _buildSectionHeader('Popular songs'),
                     SectionList(
                       items: artist.topTracks.take(10).toList(),
-                      itemBuilder: (context, track, index) => _buildTrackCard(track),
+                      itemBuilder: (context, track, index) =>
+                          _buildTrackCard(track),
                     ),
                   ],
                   if (artist.albums.isNotEmpty) ...[
@@ -133,7 +145,8 @@ class _ArtistScreenState extends ConsumerState<ArtistScreen> {
                     SectionList(
                       items: artist.albums.take(10).toList(),
                       itemWidth: 140,
-                      itemBuilder: (context, album, index) => _buildAlbumCard(album),
+                      itemBuilder: (context, album, index) =>
+                          _buildAlbumCard(album),
                     ),
                   ],
                 ],
@@ -146,7 +159,8 @@ class _ArtistScreenState extends ConsumerState<ArtistScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+              Icon(Icons.error_outline,
+                  size: 64, color: Theme.of(context).colorScheme.error),
               const SizedBox(height: 16),
               Text('Failed to load artist'),
               const SizedBox(height: 8),
@@ -186,10 +200,11 @@ class _ArtistScreenState extends ConsumerState<ArtistScreen> {
                 bottom: 4,
                 right: 4,
                 child: CircleAvatar(
-                  backgroundColor: Colors.black.withValues(alpha: 0.8),
+                  backgroundColor: Colors.black.withOpacity(0.8),
                   radius: 16,
                   child: IconButton(
-                    icon: const Icon(Icons.play_arrow, size: 16, color: Colors.white),
+                    icon: const Icon(Icons.play_arrow,
+                        size: 16, color: Colors.white),
                     onPressed: () => _playTrack(track),
                     padding: EdgeInsets.zero,
                   ),
@@ -198,8 +213,16 @@ class _ArtistScreenState extends ConsumerState<ArtistScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-          Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+          Text(track.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(track.artist,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12)),
         ],
       ),
     );
@@ -219,9 +242,20 @@ class _ArtistScreenState extends ConsumerState<ArtistScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(album.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-        Text(album.artist, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
-        Text('${album.year} • ${album.trackCount} songs', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
+        Text(album.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(album.artist,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 12)),
+        Text('${album.year} • ${album.trackCount} songs',
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 11)),
       ],
     );
   }

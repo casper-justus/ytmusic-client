@@ -2,6 +2,7 @@ library ytmusic_client.features.playlist.presentation.playlist_screen;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import '../../../core/presentation/providers.dart';
 import '../../../shared/models/track.dart';
@@ -36,8 +37,11 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                       playlist.artworkUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        child: const Center(child: Icon(Icons.queue_music, size: 80)),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        child: const Center(
+                            child: Icon(Icons.queue_music, size: 80)),
                       ),
                     ),
                     const DecoratedBox(
@@ -59,21 +63,30 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                           children: [
                             Text(
                               playlist.title,
-                              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineLarge
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             if (playlist.author != null)
                               Text(
                                 'By ${playlist.author}',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white70),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(color: Colors.white70),
                               ),
                             const SizedBox(height: 4),
                             Text(
                               '${playlist.trackCount} songs • ${_formatTotalDuration(playlist.tracks)}',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(color: Colors.white70),
                             ),
                           ],
                         ),
@@ -96,7 +109,8 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                 ),
                 PopupMenuButton(
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit playlist')),
+                    const PopupMenuItem(
+                        value: 'edit', child: Text('Edit playlist')),
                     const PopupMenuItem(value: 'share', child: Text('Share')),
                     const PopupMenuItem(value: 'delete', child: Text('Delete')),
                   ],
@@ -112,7 +126,8 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
                   }
                   final trackIndex = index - 1;
                   if (trackIndex < playlist.tracks.length) {
-                    return _buildTrackTile(playlist.tracks[trackIndex], trackIndex);
+                    return _buildTrackTile(playlist.tracks[trackIndex],
+                        trackIndex, playlist.tracks);
                   }
                   return null;
                 },
@@ -126,7 +141,8 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+              Icon(Icons.error_outline,
+                  size: 64, color: Theme.of(context).colorScheme.error),
               const SizedBox(height: 16),
               Text('Failed to load playlist'),
               const SizedBox(height: 8),
@@ -176,13 +192,13 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     );
   }
 
-  Widget _buildTrackTile(Track track, int index) {
+  Widget _buildTrackTile(Track track, int index, List<Track> tracks) {
     return ListTile(
       leading: Text(
         '${index + 1}',
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
       ),
       title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: track.artist.isNotEmpty ? Text(track.artist) : null,
@@ -192,14 +208,16 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
           Text(
             _formatDuration(track.duration),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
           PopupMenuButton(
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'play', child: Text('Play')),
-              const PopupMenuItem(value: 'add_queue', child: Text('Add to queue')),
-              const PopupMenuItem(value: 'remove', child: Text('Remove from playlist')),
+              const PopupMenuItem(
+                  value: 'add_queue', child: Text('Add to queue')),
+              const PopupMenuItem(
+                  value: 'remove', child: Text('Remove from playlist')),
               const PopupMenuItem(value: 'download', child: Text('Download')),
               const PopupMenuItem(value: 'share', child: Text('Share')),
             ],
@@ -207,7 +225,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
           ),
         ],
       ),
-      onTap: () => _playTrack(track, playlist.tracks, index),
+      onTap: () => _playTrack(track, tracks, index),
     );
   }
 
@@ -304,7 +322,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
     final totalSeconds = tracks.fold(0, (sum, t) => sum + t.duration);
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     }

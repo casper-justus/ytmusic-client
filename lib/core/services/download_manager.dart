@@ -1,11 +1,14 @@
 library ytmusic_client.core.services.download_manager;
 
+import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/data/database.dart';
+import '../../core/presentation/providers.dart';
 import '../../shared/models/track.dart';
 
 final _logger = Logger('DownloadManager');
@@ -68,13 +71,15 @@ class DownloadManager {
       );
 
       await _db.updateTrackOffline(track.id, filePath);
-      await _db.updateDownloadProgress(track.id, -1, -1, status: 'completed', completedAt: DateTime.now());
-      
+      await _db.updateDownloadProgress(track.id, -1, -1,
+          status: 'completed', completedAt: DateTime.now());
+
       _logger.info('Download completed: ${track.title}');
     } on DioException catch (e) {
       if (e.type != DioExceptionType.cancel) {
-        await _db.updateDownloadProgress(track.id, 0, 0, status: 'failed', error: e.message);
-        _logger.error('Download failed: ${track.title}', e);
+        await _db.updateDownloadProgress(track.id, 0, 0,
+            status: 'failed', error: e.message);
+        _logger.severe('Download failed: ${track.title}', e);
         rethrow;
       }
     } finally {
@@ -117,7 +122,7 @@ class DownloadManager {
     if (download != null && download.status == 'paused') {
       final track = await _db.getTrack(trackId);
       if (track != null) {
-        await downloadTrack(track);
+        await downloadTrack(Track.fromEntity(track));
       }
     }
   }
@@ -141,8 +146,10 @@ class DownloadManager {
     if (!await downloadsDir.exists()) {
       await downloadsDir.create(recursive: true);
     }
-    
-    final ext = track.audioStreamUrl?.contains('mimeType=audio/webm') == true ? '.webm' : '.m4a';
+
+    final ext = track.audioStreamUrl?.contains('mimeType=audio/webm') == true
+        ? '.webm'
+        : '.m4a';
     final safeTitle = track.title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
     final safeArtist = track.artist.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
     return '${downloadsDir.path}/${safeArtist} - $safeTitle$ext';

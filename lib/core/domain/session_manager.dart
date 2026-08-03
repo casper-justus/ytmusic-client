@@ -13,7 +13,7 @@ class SessionManager {
   static const String _cookieKey = 'youtube_music_cookies';
   static const String _authModeKey = 'auth_mode';
   static const String _userProfileKey = 'user_profile';
-  
+
   final FlutterSecureStorage _secureStorage;
   AuthMode _currentMode = AuthMode.anonymous;
   String? _sessionCookies;
@@ -33,29 +33,33 @@ class SessionManager {
     }
 
     _sessionCookies = await _secureStorage.read(key: _cookieKey);
-    
+
     final profileJson = await _secureStorage.read(key: _userProfileKey);
     if (profileJson != null) {
       _userProfile = UserProfile.fromJson(jsonDecode(profileJson));
     }
-    
-    _logger.info('Session loaded: mode=$_currentMode, hasCookies=${_sessionCookies != null}');
+
+    _logger.info(
+        'Session loaded: mode=$_currentMode, hasCookies=${_sessionCookies != null}');
   }
 
   AuthMode get currentMode => _currentMode;
   String? get sessionCookies => _sessionCookies;
   UserProfile? get userProfile => _userProfile;
-  bool get isAuthenticated => _currentMode == AuthMode.authenticated && _sessionCookies != null;
+  bool get isAuthenticated =>
+      _currentMode == AuthMode.authenticated && _sessionCookies != null;
 
   Future<void> setAuthenticatedMode(String cookies, UserProfile profile) async {
     _currentMode = AuthMode.authenticated;
     _sessionCookies = cookies;
     _userProfile = profile;
-    
-    await _secureStorage.write(key: _authModeKey, value: AuthMode.authenticated.name);
+
+    await _secureStorage.write(
+        key: _authModeKey, value: AuthMode.authenticated.name);
     await _secureStorage.write(key: _cookieKey, value: cookies);
-    await _secureStorage.write(key: _userProfileKey, value: jsonEncode(profile.toJson()));
-    
+    await _secureStorage.write(
+        key: _userProfileKey, value: jsonEncode(profile.toJson()));
+
     _logger.info('Authenticated session saved for user: ${profile.name}');
   }
 
@@ -63,11 +67,12 @@ class SessionManager {
     _currentMode = AuthMode.anonymous;
     _sessionCookies = null;
     _userProfile = null;
-    
-    await _secureStorage.write(key: _authModeKey, value: AuthMode.anonymous.name);
+
+    await _secureStorage.write(
+        key: _authModeKey, value: AuthMode.anonymous.name);
     await _secureStorage.delete(key: _cookieKey);
     await _secureStorage.delete(key: _userProfileKey);
-    
+
     _logger.info('Switched to anonymous mode');
   }
 
@@ -78,18 +83,19 @@ class SessionManager {
 
   Future<void> updateProfile(UserProfile profile) async {
     _userProfile = profile;
-    await _secureStorage.write(key: _userProfileKey, value: jsonEncode(profile.toJson()));
+    await _secureStorage.write(
+        key: _userProfileKey, value: jsonEncode(profile.toJson()));
   }
 
   Future<void> clearSession() async {
     _currentMode = AuthMode.anonymous;
     _sessionCookies = null;
     _userProfile = null;
-    
+
     await _secureStorage.delete(key: _authModeKey);
     await _secureStorage.delete(key: _cookieKey);
     await _secureStorage.delete(key: _userProfileKey);
-    
+
     _logger.info('Session cleared');
   }
 
@@ -108,7 +114,8 @@ class SessionManager {
 }
 
 class CookieParser {
-  static String? extractCookieFromWebView(String url, Map<String, String> headers) {
+  static String? extractCookieFromWebView(
+      String url, Map<String, String> headers) {
     // This would be called from a WebView after user logs in
     final cookieHeader = headers['cookie'] ?? headers['Cookie'];
     return cookieHeader;

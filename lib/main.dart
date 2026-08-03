@@ -10,20 +10,20 @@ import 'core/domain/session_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize MediaKit
   MediaKit.ensureInitialized();
-  
+
   // Initialize Just Audio Background
   await JustAudioBackground.init(
     androidNotificationChannelId: 'com.ytmusic.playback',
     androidNotificationChannelName: 'YTMusic Playback',
     androidNotificationOngoing: true,
   );
-  
+
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
-  
+
   // Run app with ProviderScope
   runApp(
     ProviderScope(
@@ -42,7 +42,7 @@ class YTMusicApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final theme = ref.watch(themeProvider);
-    
+
     return MaterialApp.router(
       title: 'YTMusic',
       debugShowCheckedModeBanner: false,

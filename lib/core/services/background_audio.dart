@@ -13,7 +13,7 @@ final _logger = Logger('BackgroundAudioService');
 class BackgroundAudioService {
   static const String _channelId = 'ytmusic_audio_channel';
   static const String _channelName = 'YTMusic Audio';
-  
+
   final FlutterBackgroundService _service = FlutterBackgroundService();
   bool _isInitialized = false;
 
@@ -48,7 +48,7 @@ class BackgroundAudioService {
   static void _onStart(ServiceInstance service) async {
     // Initialize media kit
     MediaKit.ensureInitialized();
-    
+
     // Initialize Just Audio Background
     await JustAudioBackground.init(
       androidNotificationChannelId: _channelId,
@@ -110,7 +110,8 @@ class BackgroundAudioService {
     // Channel creation handled by flutter_background_service
   }
 
-  static void _playTrack(ServiceInstance service, Map<String, dynamic> trackData) {
+  static void _playTrack(
+      ServiceInstance service, Map<String, dynamic> trackData) {
     // Implementation would use just_audio or media_kit
     _logger.info('Background play: ${trackData['title']}');
   }
@@ -132,23 +133,23 @@ class BackgroundAudioService {
   }
 
   Future<void> play(Map<String, dynamic> track) async {
-    await _service.invoke('play', {'track': track});
+    _service.invoke('play', {'track': track});
   }
 
   Future<void> pause() async {
-    await _service.invoke('pause');
+    _service.invoke('pause');
   }
 
   Future<void> stop() async {
-    await _service.invoke('stop');
+    _service.invoke('stop');
   }
 
   Future<void> seek(Duration position) async {
-    await _service.invoke('seek', {'position': position.inMilliseconds});
+    _service.invoke('seek', {'position': position.inMilliseconds});
   }
 
   Future<void> setQueue(List<Map<String, dynamic>> queue) async {
-    await _service.invoke('setQueue', {'queue': queue});
+    _service.invoke('setQueue', {'queue': queue});
   }
 
   Future<void> updateNotification({
@@ -163,7 +164,8 @@ class BackgroundAudioService {
       final androidService = _service as AndroidServiceInstance;
       await androidService.setForegroundNotificationInfo(
         title: title,
-        content: '$artist • ${_formatDuration(position)}/${_formatDuration(duration)}',
+        content:
+            '$artist • ${_formatDuration(position)}/${_formatDuration(duration)}',
       );
     }
   }

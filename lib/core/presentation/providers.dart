@@ -12,6 +12,7 @@ import '../domain/lyrics_resolver.dart';
 import '../domain/audio_player.dart';
 import '../domain/session_manager.dart';
 import '../services/ota_service.dart';
+import '../../shared/models/track.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('Initialized in main.dart');
@@ -59,7 +60,8 @@ final sessionManagerProvider = Provider<SessionManager>((ref) {
   return SessionManager();
 });
 
-final authModeProvider = StateNotifierProvider<AuthModeNotifier, AuthMode>((ref) {
+final authModeProvider =
+    StateNotifierProvider<AuthModeNotifier, AuthMode>((ref) {
   return AuthModeNotifier(ref.watch(sessionManagerProvider));
 });
 
@@ -67,7 +69,9 @@ class AuthModeNotifier extends StateNotifier<AuthMode> {
   final SessionManager _sessionManager;
 
   AuthModeNotifier(this._sessionManager) : super(_sessionManager.currentMode) {
-    _sessionManager.initialize().then((_) => state = _sessionManager.currentMode);
+    _sessionManager
+        .initialize()
+        .then((_) => state = _sessionManager.currentMode);
   }
 
   Future<void> setAuthenticated(String cookies, UserProfile profile) async {
@@ -81,13 +85,16 @@ class AuthModeNotifier extends StateNotifier<AuthMode> {
   }
 }
 
-final homeFeedProvider = FutureProvider.family<List<HomeSection>, String?>((ref, continuation) async {
+final homeFeedProvider = FutureProvider.family<List<HomeSection>, String?>(
+    (ref, continuation) async {
   final innerTube = ref.watch(innerTubeClientProvider);
-  final response = await innerTube.browse(browseId: 'FEmusic_home', continuation: continuation);
+  final response = await innerTube.browse(
+      browseId: 'FEmusic_home', continuation: continuation);
   return _parseHomeFeed(response);
 });
 
-final searchProvider = FutureProvider.family<SearchResult, SearchParams>((ref, params) async {
+final searchProvider =
+    FutureProvider.family<SearchResult, SearchParams>((ref, params) async {
   final innerTube = ref.watch(innerTubeClientProvider);
   final response = await innerTube.search(
     query: params.query,
@@ -97,19 +104,22 @@ final searchProvider = FutureProvider.family<SearchResult, SearchParams>((ref, p
   return _parseSearchResults(response, params.query);
 });
 
-final artistProvider = FutureProvider.family<Artist, String>((ref, artistId) async {
+final artistProvider =
+    FutureProvider.family<Artist, String>((ref, artistId) async {
   final innerTube = ref.watch(innerTubeClientProvider);
   final response = await innerTube.browse(browseId: artistId);
   return _parseArtist(response);
 });
 
-final albumProvider = FutureProvider.family<Album, String>((ref, browseId) async {
+final albumProvider =
+    FutureProvider.family<Album, String>((ref, browseId) async {
   final innerTube = ref.watch(innerTubeClientProvider);
   final response = await innerTube.browse(browseId: browseId);
   return _parseAlbum(response);
 });
 
-final playlistProvider = FutureProvider.family<Playlist, String>((ref, playlistId) async {
+final playlistProvider =
+    FutureProvider.family<Playlist, String>((ref, playlistId) async {
   final innerTube = ref.watch(innerTubeClientProvider);
   final response = await innerTube.getPlaylist(playlistId: playlistId);
   return _parsePlaylist(response);
@@ -121,7 +131,8 @@ final moodCategoriesProvider = FutureProvider<List<MoodCategory>>((ref) async {
   return _parseMoodCategories(response);
 });
 
-final lyricsProvider = FutureProvider.family<Lyrics, LyricsParams>((ref, params) async {
+final lyricsProvider =
+    FutureProvider.family<Lyrics, LyricsParams>((ref, params) async {
   final resolver = ref.watch(lyricsResolverProvider);
   return resolver.resolveLyrics(
     params.trackId,
@@ -139,9 +150,13 @@ class SearchParams {
   SearchParams({required this.query, required this.filter, this.continuation});
 
   @override
-  bool operator ==(Object other) => identical(this, other) ||
-      other is SearchParams && runtimeType == other.runtimeType &&
-      query == other.query && filter == other.filter && continuation == other.continuation;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SearchParams &&
+          runtimeType == other.runtimeType &&
+          query == other.query &&
+          filter == other.filter &&
+          continuation == other.continuation;
 
   @override
   int get hashCode => Object.hash(query, filter, continuation);
@@ -156,9 +171,14 @@ class LyricsParams {
   LyricsParams({required this.trackId, this.title, this.artist, this.duration});
 
   @override
-  bool operator ==(Object other) => identical(this, other) ||
-      other is LyricsParams && runtimeType == other.runtimeType &&
-      trackId == other.trackId && title == other.title && artist == other.artist && duration == other.duration;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LyricsParams &&
+          runtimeType == other.runtimeType &&
+          trackId == other.trackId &&
+          title == other.title &&
+          artist == other.artist &&
+          duration == other.duration;
 
   @override
   int get hashCode => Object.hash(trackId, title, artist, duration);
@@ -167,13 +187,15 @@ class LyricsParams {
 List<HomeSection> _parseHomeFeed(Map<String, dynamic> response) {
   final sections = <HomeSection>[];
   try {
-    final tabs = response['contents']?['singleColumnBrowseResultsRenderer']?['tabs'] as List?;
+    final tabs = response['contents']?['singleColumnBrowseResultsRenderer']
+        ?['tabs'] as List?;
     if (tabs != null) {
       for (final tab in tabs) {
         final tabRenderer = tab['tabRenderer'];
         if (tabRenderer == null) continue;
-        
-        final content = tabRenderer['content']?['sectionListRenderer']?['contents'] as List?;
+
+        final content = tabRenderer['content']?['sectionListRenderer']
+            ?['contents'] as List?;
         if (content != null) {
           for (final section in content) {
             final parsed = _parseHomeSection(section);
@@ -193,16 +215,20 @@ HomeSection? _parseHomeSection(Map<String, dynamic> section) {
     final musicShelf = section['musicShelfRenderer'];
     if (musicShelf == null) return null;
 
-    final title = musicShelf['title']?['runs']?[0]?['text'] as String? ?? 
-                  musicShelf['title']?['simpleText'] as String? ?? '';
-    
-    final items = musicShelf['contents']?['musicShelfContentsRenderer']?['items'] as List? ?? [];
-    
+    final title = musicShelf['title']?['runs']?[0]?['text'] as String? ??
+        musicShelf['title']?['simpleText'] as String? ??
+        '';
+
+    final items = musicShelf['contents']?['musicShelfContentsRenderer']
+            ?['items'] as List? ??
+        [];
+
     return HomeSection(
       title: title,
       type: _mapSectionType(title),
       items: items,
-      navigationEndpoint: musicShelf['navigationEndpoint']?['browseEndpoint']?['browseId'] as String?,
+      navigationEndpoint: musicShelf['navigationEndpoint']?['browseEndpoint']
+          ?['browseId'] as String?,
       rawData: section,
     );
   } catch (_) {
@@ -212,12 +238,15 @@ HomeSection? _parseHomeSection(Map<String, dynamic> section) {
 
 HomeSectionType _mapSectionType(String title) {
   final lower = title.toLowerCase();
-  if (lower.contains('quick pick') || lower.contains('mixed for you')) return HomeSectionType.quickPicks;
-  if (lower.contains('recommended album')) return HomeSectionType.recommendedAlbums;
+  if (lower.contains('quick pick') || lower.contains('mixed for you'))
+    return HomeSectionType.quickPicks;
+  if (lower.contains('recommended album'))
+    return HomeSectionType.recommendedAlbums;
   if (lower.contains('mood')) return HomeSectionType.moods;
   if (lower.contains('genre')) return HomeSectionType.genres;
   if (lower.contains('new release')) return HomeSectionType.newReleases;
-  if (lower.contains('library playlist')) return HomeSectionType.libraryPlaylists;
+  if (lower.contains('library playlist'))
+    return HomeSectionType.libraryPlaylists;
   if (lower.contains('recently played')) return HomeSectionType.recentlyPlayed;
   return HomeSectionType.mixedForYou;
 }
@@ -234,7 +263,14 @@ Artist _parseArtist(Map<String, dynamic> response) {
 
 Album _parseAlbum(Map<String, dynamic> response) {
   // Implementation would parse album response
-  return Album(id: '', title: '', artist: '', artistId: '', artworkUrl: '', year: 0, trackCount: 0);
+  return Album(
+      id: '',
+      title: '',
+      artist: '',
+      artistId: '',
+      artworkUrl: '',
+      year: 0,
+      trackCount: 0);
 }
 
 Playlist _parsePlaylist(Map<String, dynamic> response) {

@@ -6,12 +6,15 @@ import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 import '../../shared/models/track.dart';
 import '../constants.dart';
+import 'po_token_provider.dart';
 
 final _logger = Logger('StreamExtractor');
 
 abstract class StreamExtractor {
-  Future<List<AudioStream>> extractStreams(String videoId, {ClientContext context = ClientContext.androidMusic});
-  Future<AudioStream?> getBestAudioStream(String videoId, {ClientContext context = ClientContext.androidMusic});
+  Future<List<AudioStream>> extractStreams(String videoId,
+      {ClientContext context = ClientContext.androidMusic});
+  Future<AudioStream?> getBestAudioStream(String videoId,
+      {ClientContext context = ClientContext.androidMusic});
 }
 
 enum ClientContext { androidMusic, ios, webRemix, tvEmbedded }
@@ -19,7 +22,7 @@ enum ClientContext { androidMusic, ios, webRemix, tvEmbedded }
 class NewPipeExtractorImpl implements StreamExtractor {
   static const String _playerUrl = '$kYouTubeBaseUrl/youtubei/v1/player';
   static const String _apiKey = kYouTubeApiKey;
-  
+
   final Dio _dio;
   final PoTokenProvider _poTokenProvider;
   final CipherDecipher _cipherDecipher;
@@ -38,14 +41,16 @@ class NewPipeExtractorImpl implements StreamExtractor {
       receiveTimeout: const Duration(seconds: 30),
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'com.google.android.apps.youtube.music/6.00.52 (Linux; U; Android 14; en_US) gzip',
+        'User-Agent':
+            'com.google.android.apps.youtube.music/6.00.52 (Linux; U; Android 14; en_US) gzip',
         'X-Goog-Api-Key': _apiKey,
       },
     ));
   }
 
   @override
-  Future<List<AudioStream>> extractStreams(String videoId, {ClientContext context = ClientContext.androidMusic}) async {
+  Future<List<AudioStream>> extractStreams(String videoId,
+      {ClientContext context = ClientContext.androidMusic}) async {
     final poToken = await _poTokenProvider.getPoToken(videoId);
     final cpn = _generateCpn();
 
@@ -60,24 +65,26 @@ class NewPipeExtractorImpl implements StreamExtractor {
     );
 
     if (response.statusCode != 200) {
-      throw StreamExtractionException('Failed to extract streams: ${response.statusCode}');
+      throw StreamExtractionException(
+          'Failed to extract streams: ${response.statusCode}');
     }
 
     return _parseStreamingData(response.data, videoId);
   }
 
   @override
-  Future<AudioStream?> getBestAudioStream(String videoId, {ClientContext context = ClientContext.androidMusic}) async {
+  Future<AudioStream?> getBestAudioStream(String videoId,
+      {ClientContext context = ClientContext.androidMusic}) async {
     final streams = await extractStreams(videoId, context: context);
-    
+
     // Prefer Opus (itag 251) > AAC (itag 140) > others
     const preferredItags = [251, 140, 250, 249, 139, 141, 256, 258];
-    
+
     for (final itag in preferredItags) {
       final stream = streams.where((s) => s.itag == itag).firstOrNull;
       if (stream != null) return stream;
     }
-    
+
     // Fallback to highest bitrate
     streams.sort((a, b) => b.bitrate.compareTo(a.bitrate));
     return streams.isNotEmpty ? streams.first : null;
@@ -157,10 +164,14 @@ class NewPipeExtractorImpl implements StreamExtractor {
 
   Map<String, String> _buildHeaders(ClientContext context) {
     const userAgents = {
-      ClientContext.androidMusic: 'com.google.android.apps.youtube.music/6.00.52 (Linux; U; Android 14; en_US) gzip',
-      ClientContext.ios: 'com.google.ios.youtube.music/6.00 (iPhone15,2; U; iOS 17.2; en_US) gzip',
-      ClientContext.webRemix: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      ClientContext.tvEmbedded: 'Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      ClientContext.androidMusic:
+          'com.google.android.apps.youtube.music/6.00.52 (Linux; U; Android 14; en_US) gzip',
+      ClientContext.ios:
+          'com.google.ios.youtube.music/6.00 (iPhone15,2; U; iOS 17.2; en_US) gzip',
+      ClientContext.webRemix:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      ClientContext.tvEmbedded:
+          'Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     };
 
     return {
@@ -170,19 +181,21 @@ class NewPipeExtractorImpl implements StreamExtractor {
     };
   }
 
-  List<AudioStream> _parseStreamingData(Map<String, dynamic> data, String videoId) {
+  List<AudioStream> _parseStreamingData(
+      Map<String, dynamic> data, String videoId) {
     final streamingData = data['streamingData'];
     if (streamingData == null) {
       throw StreamExtractionException('No streaming data in response');
     }
 
     final formats = <Map<String, dynamic>>[];
-    
+
     if (streamingData['formats'] != null) {
       formats.addAll(List<Map<String, dynamic>>.from(streamingData['formats']));
     }
     if (streamingData['adaptiveFormats'] != null) {
-      formats.addAll(List<Map<String, dynamic>>.from(streamingData['adaptiveFormats']));
+      formats.addAll(
+          List<Map<String, dynamic>>.from(streamingData['adaptiveFormats']));
     }
 
     return formats
@@ -199,11 +212,11 @@ class NewPipeExtractorImpl implements StreamExtractor {
 
       String? url = format['url'] as String?;
       final signatureCipher = format['signatureCipher'] as String?;
-      
+
       if (url == null && signatureCipher != null) {
         url = _decipherSignature(signatureCipher);
       }
-      
+
       if (url == null) return null;
 
       final mimeType = format['mimeType'] as String? ?? '';
@@ -231,9 +244,9 @@ class NewPipeExtractorImpl implements StreamExtractor {
     final params = Uri.splitQueryString(signatureCipher);
     final url = params['url'];
     final signature = params['s'] ?? params['sig'];
-    
+
     if (url == null || signature == null) return null;
-    
+
     final deciphered = _cipherDecipher.decipher(signature);
     return '$url&sig=$deciphered';
   }
@@ -271,9 +284,10 @@ class CipherDecipherImpl implements CipherDecipher {
   @override
   String decipher(String signature) {
     if (_cachedTransforms == null) {
-      throw CipherException('Cipher transforms not initialized. Call initialize() first.');
+      throw CipherException(
+          'Cipher transforms not initialized. Call initialize() first.');
     }
-    
+
     var result = signature.split('');
     for (final step in _cachedTransforms!) {
       result = step.apply(result);
@@ -283,18 +297,20 @@ class CipherDecipherImpl implements CipherDecipher {
 
   Future<void> initialize() async {
     if (_cachedTransforms != null) return;
-    
+
     try {
       await _fetchAndParsePlayerJs();
     } catch (e) {
-      _logger.warning('Failed to fetch player JS, using fallback transforms: $e');
+      _logger
+          .warning('Failed to fetch player JS, using fallback transforms: $e');
       _cachedTransforms = _getFallbackTransforms();
     }
   }
 
   Future<void> _fetchAndParsePlayerJs() async {
     final dio = Dio();
-    final response = await dio.get('$_baseJsUrl${_getLatestPlayerVersion()}/player.js');
+    final response =
+        await dio.get('$_baseJsUrl${_getLatestPlayerVersion()}/player.js');
     _cachedPlayerJs = response.data as String?;
     _cachedTransforms = _parseTransforms(_cachedPlayerJs!);
   }

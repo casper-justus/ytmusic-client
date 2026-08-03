@@ -3,8 +3,11 @@ library ytmusic_client.features.library.presentation.library_screen;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
+import 'package:go_router/go_router.dart';
+import 'package:drift/drift.dart' hide Column;
 import '../../../core/presentation/providers.dart';
 import '../../../core/data/database.dart';
+import '../../../core/data/innertube_client.dart';
 import '../../../shared/models/track.dart';
 
 final _logger = Logger('LibraryScreen');
@@ -16,7 +19,8 @@ class LibraryScreen extends ConsumerStatefulWidget {
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
-class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTickerProviderStateMixin {
+class _LibraryScreenState extends ConsumerState<LibraryScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -138,24 +142,30 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
             return ListTile(
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: Image.network(track.artworkUrl, width: 48, height: 48, fit: BoxFit.cover),
+                child: Image.network(track.artworkUrl,
+                    width: 48, height: 48, fit: BoxFit.cover),
               ),
-              title: Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-              subtitle: Text(track.artist, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: Text(track.title,
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: Text(track.artist,
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
               trailing: PopupMenuButton(
                 itemBuilder: (context) => [
                   const PopupMenuItem(value: 'play', child: Text('Play')),
-                  const PopupMenuItem(value: 'add_queue', child: Text('Add to queue')),
-                  const PopupMenuItem(value: 'remove', child: Text('Remove from library')),
+                  const PopupMenuItem(
+                      value: 'add_queue', child: Text('Add to queue')),
+                  const PopupMenuItem(
+                      value: 'remove', child: Text('Remove from library')),
                 ],
               ),
-              onTap: () => _playTrack(track),
+              onTap: () => _playTrack(Track.fromEntity(track)),
             );
           },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => _buildEmptyState(icon: Icons.error_outline, title: 'Failed to load songs'),
+      error: (_, __) => _buildEmptyState(
+          icon: Icons.error_outline, title: 'Failed to load songs'),
     );
   }
 
@@ -205,7 +215,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
                 ),
               ),
               title: Text('Track ${download.trackId}'),
-              subtitle: Text('${download.status} • ${_formatBytes(download.downloadedBytes)}/${_formatBytes(download.totalBytes)}'),
+              subtitle: Text(
+                  '${download.status} • ${_formatBytes(download.downloadedBytes)}/${_formatBytes(download.totalBytes)}'),
               trailing: download.status == 'completed'
                   ? const Icon(Icons.check_circle, color: Colors.green)
                   : const CircularProgressIndicator(),
@@ -214,7 +225,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => _buildEmptyState(icon: Icons.error_outline, title: 'Failed to load downloads'),
+      error: (_, __) => _buildEmptyState(
+          icon: Icons.error_outline, title: 'Failed to load downloads'),
     );
   }
 
@@ -236,8 +248,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
             ),
           ),
         ),
-        title: Text(playlist.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text('${playlist.trackCount} songs', maxLines: 1, overflow: TextOverflow.ellipsis),
+        title:
+            Text(playlist.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text('${playlist.trackCount} songs',
+            maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
             const PopupMenuItem(value: 'play', child: Text('Play')),
@@ -255,7 +269,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
   Widget _buildEmptyState({
     required IconData icon,
     required String title,
-    required String subtitle,
+    String? subtitle,
     String? actionText,
     VoidCallback? onAction,
   }) {
@@ -265,13 +279,21 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 80, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Icon(icon,
+                size: 80,
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(height: 16),
-            Text(title, style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ), textAlign: TextAlign.center),
+            Text(title,
+                style: Theme.of(context).textTheme.headlineSmall,
+                textAlign: TextAlign.center),
+            if (subtitle != null) ...[
+              const SizedBox(height: 8),
+              Text(subtitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                  textAlign: TextAlign.center),
+            ],
             if (actionText != null && onAction != null) ...[
               const SizedBox(height: 24),
               ElevatedButton.icon(
@@ -298,7 +320,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           FilledButton(
             onPressed: () {
               if (controller.text.trim().isNotEmpty) {
@@ -357,7 +381,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTicker
 }
 
 // Providers for local data
-final localPlaylistsProvider = FutureProvider<List<PlaylistEntity>>((ref) async {
+final localPlaylistsProvider =
+    FutureProvider<List<PlaylistEntity>>((ref) async {
   final db = ref.read(databaseProvider);
   return db.getAllPlaylists();
 });
@@ -372,11 +397,13 @@ final downloadsProvider = FutureProvider<List<DownloadEntity>>((ref) async {
   return db.getDownloads();
 });
 
-final searchHistoryProvider = StateNotifierProvider<SearchHistoryNotifier, AsyncValue<List<SearchHistoryEntity>>>((ref) {
+final searchHistoryProvider = StateNotifierProvider<SearchHistoryNotifier,
+    AsyncValue<List<SearchHistoryEntity>>>((ref) {
   return SearchHistoryNotifier(ref.read(databaseProvider));
 });
 
-class SearchHistoryNotifier extends StateNotifier<AsyncValue<List<SearchHistoryEntity>>> {
+class SearchHistoryNotifier
+    extends StateNotifier<AsyncValue<List<SearchHistoryEntity>>> {
   final AppDatabase _db;
 
   SearchHistoryNotifier(this._db) : super(const AsyncValue.loading()) {
