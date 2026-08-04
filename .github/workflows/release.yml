@@ -365,7 +365,7 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: [prepare, build-android, build-ios, generate-changelog]
-    if: needs.build-android.result == 'success' && needs.generate-changelog.result == 'success'
+    if: always() && needs.build-android.result == 'success' && needs.generate-changelog.result == 'success' && needs.build-ios.result != 'failure'
     permissions:
       contents: write
     steps:
