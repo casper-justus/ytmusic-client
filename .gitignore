@@ -1,9 +1,12 @@
 *.keystore
+.android-sdk/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 android/local.properties
+android/.gradle/
 android/app/src/main/java/io/
+build/
 ios/Flutter/
 ios/Runner/GeneratedPluginRegistrant.h
 ios/Runner/GeneratedPluginRegistrant.m
